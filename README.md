@@ -69,10 +69,10 @@ Implement specific requirements for ETH and ERC-20 swaps.
 #### Documentation
 * [ ] Update wallet713 documentation with new commands related to swaps
 
-### Future versions
+### Future work
 
-* [ ] BTC Support
-* [ ] Order matching / price discovery
+* [ ] Add BTC Support
+* [ ] Add Order matching / price discovery
 
 ## License
 Apache License v2.0.
