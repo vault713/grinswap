@@ -14,11 +14,10 @@ use super::error::ErrorKind;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Builder {
 	num_participants: usize,
-    amount: u64,
-    participants: Vec<ParticipantData>,
+	amount: u64,
+	participants: Vec<ParticipantData>,
 	#[serde(serialize_with = "option_proof_to_hex", deserialize_with = "option_proof_from_hex", skip_serializing_if = "Option::is_none", default)]
-    proof: Option<RangeProof>,
-
+	proof: Option<RangeProof>,
 	id: usize,
 	nonce: SecretKey,
 	common_nonce: SecretKey,
@@ -119,15 +118,15 @@ impl Builder {
 	}
 
 
-    pub fn reveal(&mut self, secp: &Secp256k1, secret_key: &SecretKey) -> Result<(), Error> {
+	pub fn reveal(&mut self, secp: &Secp256k1, secret_key: &SecretKey) -> Result<(), Error> {
 		if self.participants.len() != self.num_participants {
 			return Err(ErrorKind::MultiSigIncomplete.into());
 		}
 
-        let partial_commitment = secp.commit(0, *secret_key)?;
-        self.participants[self.id].reveal(&partial_commitment)?;
-        Ok(())
-    }
+		let partial_commitment = secp.commit(0, *secret_key)?;
+		self.participants[self.id].reveal(&partial_commitment)?;
+		Ok(())
+	}
 
 	pub fn round_1(&mut self, secp: &Secp256k1, blind: &SecretKey) -> Result<(), Error> {
 		let mut t_1 = PublicKey::new();
@@ -257,9 +256,9 @@ impl Builder {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ParticipantData {
-    partial_commitment_hash: Hash,
+	partial_commitment_hash: Hash,
 	#[serde(serialize_with = "option_commit_to_hex", deserialize_with = "option_commit_from_hex", skip_serializing_if = "Option::is_none", default)]
-    partial_commitment: Option<Commitment>,
+	partial_commitment: Option<Commitment>,
 	#[serde(serialize_with = "option_pubkey_to_hex", deserialize_with = "option_pubkey_from_hex", skip_serializing_if = "Option::is_none", default)]
 	t_1: Option<PublicKey>,
 	#[serde(serialize_with = "option_pubkey_to_hex", deserialize_with = "option_pubkey_from_hex", skip_serializing_if = "Option::is_none", default)]
@@ -271,8 +270,8 @@ pub struct ParticipantData {
 
 impl ParticipantData {
 	pub fn new(partial_commitment: Commitment) -> Self {
-        ParticipantData {
-            partial_commitment_hash: partial_commitment.hash().unwrap(),
+		ParticipantData {
+			partial_commitment_hash: partial_commitment.hash().unwrap(),
 			partial_commitment: None,
 			t_1: None,
 			t_2: None,
@@ -290,13 +289,13 @@ impl ParticipantData {
 		}
 	}
 
-    fn reveal(&mut self, partial_commitment: &Commitment) -> Result<(), Error> {
-        if partial_commitment.hash()? != self.partial_commitment_hash {
-            return Err(ErrorKind::Reveal.into());
-        }
-        self.partial_commitment = Some(partial_commitment.clone());
-        Ok(())
-    }
+	fn reveal(&mut self, partial_commitment: &Commitment) -> Result<(), Error> {
+		if partial_commitment.hash()? != self.partial_commitment_hash {
+			return Err(ErrorKind::Reveal.into());
+		}
+		self.partial_commitment = Some(partial_commitment.clone());
+		Ok(())
+	}
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone)]
@@ -318,7 +317,7 @@ impl Hash {
 
 impl Serialize for Hash {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer {
+		where S: Serializer {
 		serializer.serialize_str(&hex::encode(&self.inner))
 	}
 }
@@ -338,13 +337,13 @@ impl<'de> Deserialize<'de> for Hash {
 }
 
 trait Hashed {
-    fn hash(&self) -> Result<Hash, Error>;
+	fn hash(&self) -> Result<Hash, Error>;
 }
 
 impl Hashed for Commitment {
-    fn hash(&self) -> Result<Hash, Error> {
+	fn hash(&self) -> Result<Hash, Error> {
 		Hash::new(blake2b(32, &[], &self.0).as_bytes().to_vec())
-    }
+	}
 }
 
 
@@ -352,7 +351,7 @@ impl Hashed for Commitment {
 mod tests {
 	use rand::thread_rng;
 	use secp::ContextFlag;
-    use super::*;
+	use super::*;
 
 	#[test]
 	fn test_builder() {
