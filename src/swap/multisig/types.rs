@@ -87,8 +87,8 @@ impl Builder {
 			return Err(ErrorKind::Round1Missing.into());
 		}
 
-		self.participants[id].t_1 = participant.t_1;
-		self.participants[id].t_2 = participant.t_2;
+		self.participants[id].t_1 = participant.t_1.clone();
+		self.participants[id].t_2 = participant.t_2.clone();
 		Ok(())
 	}
 
@@ -105,7 +105,7 @@ impl Builder {
 			return Err(ErrorKind::Round2Missing.into());
 		}
 
-		self.participants[id].tau_x = participant.tau_x;
+		self.participants[id].tau_x = participant.tau_x.clone();
 		Ok(())
 	}
 
