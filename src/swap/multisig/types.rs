@@ -51,7 +51,7 @@ impl Builder {
 			return Err(ErrorKind::ParticipantExists.into());
 		}
 
-		if self.participants.len() != id && self.participants.len() >= self.num_participants {
+		if self.participants.len() != id || self.participants.len() >= self.num_participants {
 			return Err(ErrorKind::ParticipantOrdering.into());
 		}
 
