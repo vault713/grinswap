@@ -1,0 +1,27 @@
+[package]
+name = "grinswap"
+version = "0.1.0"
+authors = ["vault713 <hello@713.mw>"]
+description = "Grin cross-chain atomic swaps"
+keywords = [ "grin", "mimblewimble", "rust", "crypto", "cryptocurrency", "atomic swap", "adaptor signature" ]
+license = "Apache-2.0"
+readme = "README.md"
+
+[dependencies]
+blake2-rfc = "0.2"
+chrono = { version = "0.4", features = ["serde"] }
+erased-serde = "0.3"
+failure = "0.1"
+failure_derive = "0.1"
+hex = "0.3"
+parking_lot = "0.6"
+rand = "0.5"
+serde = "1"
+serde_derive = "1"
+serde_json = "1"
+uuid = { version = "0.6", features = ["serde", "v4"] }
+
+grin_core = { git = "https://github.com/mimblewimble/grin", tag="v1.1.0-beta.2" }
+grin_keychain = { git = "https://github.com/mimblewimble/grin", tag="v1.1.0-beta.2" }
+grin_store = { git = "https://github.com/mimblewimble/grin", tag="v1.1.0-beta.2" }
+grin_util = { git = "https://github.com/mimblewimble/grin", tag="v1.1.0-beta.2" }
