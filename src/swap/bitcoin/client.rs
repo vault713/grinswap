@@ -1,8 +1,7 @@
 use crate::swap::ErrorKind;
 use bitcoin::consensus::Decodable;
-use bitcoin::util::address::Payload;
-use bitcoin::{Address, OutPoint, Script, Transaction};
-use bitcoin_hashes::{hash160, sha256d, Hash as HashTrait};
+use bitcoin::{Address, OutPoint, Transaction};
+use bitcoin_hashes::sha256d;
 use parking_lot::Mutex;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -69,18 +68,6 @@ impl TestBTCNodeClient {
 				txs: HashMap::new(),
 				pending: HashMap::new(),
 			})),
-		}
-	}
-
-	fn payload(script: &Script) -> Option<Payload> {
-		if script.is_p2pkh() {
-			let hash = hash160::Hash::from_slice(&script.as_bytes()[3..23]).unwrap();
-			Some(Payload::PubkeyHash(hash))
-		} else if script.is_p2sh() {
-			let hash = hash160::Hash::from_slice(&script.as_bytes()[2..22]).unwrap();
-			Some(Payload::ScriptHash(hash))
-		} else {
-			None
 		}
 	}
 

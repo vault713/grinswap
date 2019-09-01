@@ -3,7 +3,7 @@ use super::multisig::{Builder as MultisigBuilder, ParticipantData as MultisigPar
 use super::swap::{publish_transaction, signature_as_secret, tx_add_input, tx_add_output, Swap};
 use super::types::*;
 use super::{ErrorKind, CURRENT_SLATE_VERSION, CURRENT_VERSION};
-use grin_core::core::{Committed, Transaction};
+use grin_core::core::Committed;
 use grin_core::libtx::{build, proof, tx_fee};
 use grin_keychain::{BlindSum, BlindingFactor, Keychain};
 use grin_util::secp::aggsig;
@@ -564,8 +564,6 @@ impl SellAPI {
 		swap: &Swap,
 		context: &Context,
 	) -> Result<SecretKey, ErrorKind> {
-		let scontext = context.unwrap_seller()?;
-
 		// Partial multisig input
 		let sum = BlindSum::new().sub_blinding_factor(BlindingFactor::from_secret_key(
 			swap.multisig_secret(keychain, context)?,

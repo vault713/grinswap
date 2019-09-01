@@ -16,7 +16,8 @@ extern crate serde_json;
 extern crate sha2;
 extern crate uuid;
 
-pub use swap::bitcoin::BTCSwapAPI;
+pub use swap::api::SwapAPI;
+pub use swap::bitcoin::{BTCNodeClient, BTCSwapAPI, ElectrumNodeClient, TestBTCNodeClient};
 pub use swap::multisig::Builder;
 pub use swap::types::Context;
 pub use swap::Swap;

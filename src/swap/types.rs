@@ -149,7 +149,7 @@ impl SellerContext {
 	pub fn unwrap_btc(&self) -> Result<&BTCSellerContext, ErrorKind> {
 		match &self.secondary_context {
 			SecondarySellerContext::BTC(c) => Ok(c),
-			_ => Err(ErrorKind::UnexpectedCoinType),
+			//_ => Err(ErrorKind::UnexpectedCoinType),
 		}
 	}
 }
@@ -165,7 +165,7 @@ impl BuyerContext {
 	pub fn unwrap_btc(&self) -> Result<&BTCBuyerContext, ErrorKind> {
 		match &self.secondary_context {
 			SecondaryBuyerContext::BTC(c) => Ok(c),
-			_ => Err(ErrorKind::UnexpectedCoinType),
+			//_ => Err(ErrorKind::UnexpectedCoinType),
 		}
 	}
 }

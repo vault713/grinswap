@@ -281,8 +281,8 @@ mod tests {
 		fn get_kernel(
 			&mut self,
 			excess: &Commitment,
-			min_height: Option<u64>,
-			max_height: Option<u64>,
+			_min_height: Option<u64>,
+			_max_height: Option<u64>,
 		) -> Result<Option<(TxKernel, u64, u64)>, libwallet::Error> {
 			let state = self.state.lock();
 			let res = state

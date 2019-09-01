@@ -3,7 +3,6 @@ use super::rpc::*;
 use crate::swap::ErrorKind;
 use bitcoin::consensus::Decodable;
 use bitcoin::{Address, OutPoint, Script, Transaction};
-use bitcoin_hashes::hex::FromHex;
 use bitcoin_hashes::sha256d::Hash;
 use grin_util::{from_hex, to_hex};
 use serde::{Deserialize, Serialize};
@@ -323,14 +322,14 @@ mod tests {
 	use super::*;
 	use crate::swap::bitcoin::BTCData;
 	use crate::swap::types::Network;
+	use bitcoin_hashes::hex::FromHex;
 	use bitcoin_hashes::sha256d::Hash;
 	use grin_util::from_hex;
 	use grin_util::secp::key::PublicKey;
 	use grin_util::secp::{ContextFlag, Secp256k1};
 	use rand::{thread_rng, Rng};
-	use std::str::FromStr;
 
-	//	#[test]
+	#[test]
 	fn test_electrum() {
 		let secp = Secp256k1::with_caps(ContextFlag::Commit);
 		let addresses = vec![

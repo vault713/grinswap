@@ -1,9 +1,10 @@
 use failure::Error;
 //use grin_core::core::{Input as TxInput, KernelFeatures, Output as TxOutput, OutputFeatures, Transaction, TransactionBody, TxKernel};
 //use grin_keychain::BlindingFactor;
-use grin_util::secp::constants::MAX_PROOF_SIZE;
+//use grin_util::secp::constants::MAX_PROOF_SIZE;
 use grin_util::secp::key::{PublicKey, SecretKey};
-use grin_util::secp::pedersen::{Commitment, RangeProof};
+use grin_util::secp::pedersen::Commitment;
+//use grin_util::secp::pedersen::RangeProof;
 use grin_util::secp::{ContextFlag, Secp256k1, Signature};
 use hex::{self, FromHex};
 use libwallet::{Slate, VersionedSlate};

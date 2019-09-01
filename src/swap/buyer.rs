@@ -9,7 +9,7 @@ use grin_util::secp::aggsig;
 use grin_util::secp::key::{PublicKey, SecretKey};
 use grin_util::secp::pedersen::RangeProof;
 use libwallet::{NodeClient, ParticipantData as TxParticipant, Slate, VersionedSlate};
-use rand::{thread_rng, Rng};
+use rand::thread_rng;
 use std::mem;
 use uuid::Uuid;
 
@@ -27,7 +27,7 @@ impl BuyAPI {
 			return Err(ErrorKind::IncompatibleVersion);
 		}
 
-		let bcontext = context.unwrap_buyer()?;
+		context.unwrap_buyer()?;
 
 		// Multisig tx needs to be unlocked
 		let lock_slate: Slate = offer.lock_slate.into();
@@ -78,7 +78,7 @@ impl BuyAPI {
 
 		swap.redeem_public = Some(PublicKey::from_secret_key(
 			keychain.secp(),
-			&Self::redeem_secret(keychain, &swap, context)?,
+			&Self::redeem_secret(keychain, context)?,
 		)?);
 
 		Self::build_multisig(keychain, &mut swap, context, offer.multisig)?;
@@ -221,11 +221,7 @@ impl BuyAPI {
 	}
 
 	/// Secret that unlocks the funds on both chains
-	fn redeem_secret<K: Keychain>(
-		keychain: &K,
-		swap: &Swap,
-		context: &Context,
-	) -> Result<SecretKey, ErrorKind> {
+	fn redeem_secret<K: Keychain>(keychain: &K, context: &Context) -> Result<SecretKey, ErrorKind> {
 		let bcontext = context.unwrap_buyer()?;
 		let sec_key = keychain.derive_key(0, &bcontext.redeem, &SwitchCommitmentType::None)?;
 
@@ -479,7 +475,7 @@ impl BuyAPI {
 			&message,
 			&sec_key,
 			Some(&context.redeem_nonce),
-			Some(&Self::redeem_secret(keychain, swap, context)?),
+			Some(&Self::redeem_secret(keychain, context)?),
 			Some(&pub_nonce_sum),
 			Some(&pub_blind_sum),
 			Some(&pub_nonce_sum),

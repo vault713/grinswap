@@ -1,11 +1,9 @@
 use super::client::BTCNodeClient;
 use super::types::BTCData;
 use crate::swap::message::{Message, Update};
-use crate::swap::swap::publish_transaction;
 use crate::swap::types::{Action, Context, Currency, Role, Status};
 use crate::swap::{BuyAPI, ErrorKind, SellAPI, Swap, SwapAPI};
 use bitcoin::{Address, AddressType};
-use grin_core::core::Transaction;
 use grin_keychain::{Keychain, SwitchCommitmentType};
 use libwallet::NodeClient;
 use std::str::FromStr;
@@ -217,8 +215,33 @@ where
 		Ok(())
 	}
 
-	fn seller_redeem_confirmations(&self, swap: &mut Swap) -> Result<(), ErrorKind> {
-		Ok(())
+	fn seller_update_redeem(&mut self, swap: &mut Swap) -> Result<Action, ErrorKind> {
+		swap.expect(Status::RedeemSecondary)?;
+
+		// We have generated the BTC redeem tx..
+		let btc_data = swap.secondary_data.unwrap_btc_mut()?;
+		let txid = &btc_data
+			.redeem_tx
+			.as_ref()
+			.ok_or(ErrorKind::Generic("Redeem transaction missing".into()))?
+			.txid;
+
+		if btc_data.redeem_confirmations.is_none() {
+			// ..but we haven't published it yet
+			Ok(Action::PublishTxSecondary)
+		} else {
+			// ..we published it..
+			if let Some((Some(height), _)) = self.btc_node_client.transaction(txid)? {
+				let confirmations = self.btc_node_client.height()?.saturating_sub(height) + 1;
+				btc_data.redeem_confirmations = Some(confirmations);
+				if confirmations > 0 {
+					// ..and its been included in a block!
+					return Ok(Action::Complete);
+				}
+			}
+			// ..but its not confirmed yet
+			Ok(Action::ConfirmationRedeemSecondary(format!("{}", txid)))
+		}
 	}
 
 	// Buyer specific methods
@@ -388,11 +411,11 @@ where
 		Ok(action)
 	}
 
-	fn refunded(&mut self, swap: &mut Swap) -> Result<(), ErrorKind> {
+	fn refunded(&mut self, _swap: &mut Swap) -> Result<(), ErrorKind> {
 		unimplemented!();
 	}
 
-	fn cancelled(&mut self, swap: &mut Swap) -> Result<(), ErrorKind> {
+	fn cancelled(&mut self, _swap: &mut Swap) -> Result<(), ErrorKind> {
 		unimplemented!();
 	}
 
@@ -409,30 +432,7 @@ where
 						return Ok(action);
 					}
 				} else if swap.status == Status::RedeemSecondary {
-					// We have generated the BTC redeem tx..
-					let btc_data = swap.secondary_data.unwrap_btc_mut()?;
-					let txid = &btc_data
-						.redeem_tx
-						.as_ref()
-						.ok_or(ErrorKind::Generic("Redeem transaction missing".into()))?
-						.txid;
-					if btc_data.redeem_confirmations.is_none() {
-						// ..but we haven't published it yet
-						return Ok(Action::PublishTxSecondary);
-					} else {
-						// ..we published it..
-						if let Some((Some(height), _)) = self.btc_node_client.transaction(txid)? {
-							let confirmations =
-								self.btc_node_client.height()?.saturating_sub(height) + 1;
-							btc_data.redeem_confirmations = Some(confirmations);
-							if confirmations > 0 {
-								// ..and its been included in a block!
-								return Ok(Action::Complete);
-							}
-						}
-						// ..but its not confirmed yet
-						return Ok(Action::ConfirmationRedeemSecondary(format!("{}", txid)));
-					}
+					return self.seller_update_redeem(swap);
 				}
 				let action = SellAPI::required_action(&mut self.node_client, swap)?;
 

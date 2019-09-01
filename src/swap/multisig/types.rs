@@ -440,10 +440,6 @@ impl Hash {
 		Ok(Self { inner })
 	}
 
-	pub fn to_vec(&self) -> Vec<u8> {
-		self.inner.clone()
-	}
-
 	pub fn to_secret_key(&self, secp: &Secp256k1) -> Result<SecretKey, ErrorKind> {
 		let key = SecretKey::from_slice(secp, &self.inner)?;
 		Ok(key)
