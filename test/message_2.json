@@ -1,0 +1,37 @@
+{
+  "id": "c1473010-0710-4df0-88ec-34abc3f70d7d",
+  "inner": {
+    "AcceptOffer": {
+      "multisig": {
+        "partial_commitment": "0929fbb62bc719998c1146fc78955ed210bb5bf474f968cbce230175e2585fb71c",
+        "t_1": "025820002d7b0fda64d5f9c5ab58c6169f205da4bcf28d4b5091a3376bc3e357a9",
+        "t_2": "02c48aeedbc41836ce47ed930655db0d1af7d484ab3d0c47029feddc97b6264904",
+        "tau_x": "e6576c9e6521204c6bfe83cf14b02dd4ef4585ea8ccbd4e3a8f46b580b3af4dd"
+      },
+      "redeem_public": "030654f6b3b4b54db0f2b066e651dcd67709444d2131d207ae5add2167596a091a",
+      "lock_participant": {
+        "id": "1",
+        "public_blind_excess": "0329fbb62bc719998c1146fc78955ed210bb5bf474f968cbce230175e2585fb71c",
+        "public_nonce": "025095c06816053b34317505e03ec069483ea0c17a865851560c06ce1a7c01b23b",
+        "part_sig": "3bb2017c1ace060c565158867ac1a03e4869c03ee0057531343b051668c095503c1f3248d64ce165f23989a1c7212000ee98d30f9d6420f0e33a958718183d07",
+        "message": null,
+        "message_sig": null
+      },
+      "refund_participant": {
+        "id": "1",
+        "public_blind_excess": "0229fbb62bc719998c1146fc78955ed210bb5bf474f968cbce230175e2585fb71c",
+        "public_nonce": "02c5feea3b4566008a8075f9d16b9259853d7575719d5608a7160f8361a52efa96",
+        "part_sig": "96fa2ea561830f16a708569d7175753d8559926bd1f975808a0066453beafec5a7e32b973ea75757cb26bdfc240881d2e96b86885ea3f2150b7fa3b648f1b125",
+        "message": null,
+        "message_sig": null
+      }
+    }
+  },
+  "inner_secondary": {
+    "BTC": {
+      "AcceptOffer": {
+        "refund": "03434496eb1554ad47c7ec5c267e902e1b71a03e189cc4fe9c83d9513e3a4e2e5a"
+      }
+    }
+  }
+}
