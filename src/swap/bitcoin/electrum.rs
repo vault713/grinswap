@@ -102,8 +102,8 @@ impl ElectrumRpcClient {
 	}
 
 	pub fn post_tx(&mut self, tx: Vec<u8>) -> Result<(), ErrorKind> {
-		let tx_hex = grin_util::to_hex(tx);
-		let request = RpcRequest::new(self.next_id(), "blockchain.transaction.broadcast", tx_hex)?;
+		let params = BroadcastParams::new(tx);
+		let request = RpcRequest::new(self.next_id(), "blockchain.transaction.broadcast", params)?;
 		self.write(&request)?;
 		let hash: String = self.wait(request.id)?;
 		let hash = from_hex(hash).map_err(|_| ErrorKind::NodeClient("Unable to post tx".into()))?;
@@ -181,6 +181,17 @@ impl TransactionParams {
 			tx_hash,
 			verbose: true,
 		}
+	}
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct BroadcastParams {
+	raw_tx: String,
+}
+
+impl BroadcastParams {
+	pub fn new(tx: Vec<u8>) -> Self {
+		Self { raw_tx: to_hex(tx) }
 	}
 }
 
