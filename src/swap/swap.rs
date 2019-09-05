@@ -70,6 +70,15 @@ impl Swap {
 		}
 	}
 
+	pub fn redeem_output(&self) -> Result<Option<(u64, Commitment)>, ErrorKind> {
+		let output = match self.redeem_slate.tx.outputs().get(0) {
+			Some(o) => o.commit.clone(),
+			None => return Ok(None),
+		};
+
+		Ok(Some((self.redeem_slate.amount, output)))
+	}
+
 	pub(super) fn expect_seller(&self) -> Result<(), ErrorKind> {
 		match self.role {
 			Role::Seller(_, _) => Ok(()),
