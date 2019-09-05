@@ -2,10 +2,11 @@ use super::message::*;
 use super::multisig::{Builder as MultisigBuilder, ParticipantData as MultisigParticipant};
 use super::swap::{publish_transaction, signature_as_secret, tx_add_input, tx_add_output, Swap};
 use super::types::*;
-use super::{ErrorKind, CURRENT_SLATE_VERSION, CURRENT_VERSION};
+use super::{ErrorKind, Keychain, CURRENT_SLATE_VERSION, CURRENT_VERSION};
+use chrono::Utc;
 use grin_core::core::Committed;
 use grin_core::libtx::{build, proof, tx_fee};
-use grin_keychain::{BlindSum, BlindingFactor, Keychain};
+use grin_keychain::{BlindSum, BlindingFactor};
 use grin_util::secp::aggsig;
 use grin_util::secp::key::{PublicKey, SecretKey};
 use grin_util::secp::pedersen::{Commitment, RangeProof};
@@ -14,9 +15,9 @@ use rand::thread_rng;
 use std::mem;
 use uuid::Uuid;
 
-pub struct SellAPI {}
+pub struct SellApi {}
 
-impl SellAPI {
+impl SellApi {
 	/// Start a swap
 	/// This will create an object to track the swap state,
 	/// as well as an offer to send to the counterparty
@@ -25,6 +26,7 @@ impl SellAPI {
 	pub fn create_swap_offer<K: Keychain>(
 		keychain: &K,
 		context: &Context,
+		address: Option<String>,
 		primary_amount: u64,
 		secondary_amount: u64,
 		secondary_currency: Currency,
@@ -73,10 +75,12 @@ impl SellAPI {
 
 		let mut swap = Swap {
 			id: Uuid::new_v4(),
+			idx: 0,
 			version: CURRENT_VERSION,
-			address: None,
+			address,
 			network: Network::Floonet,
 			role: Role::Seller(secondary_redeem_address, change),
+			started: Utc::now(),
 			status: Status::Created,
 			primary_amount,
 			secondary_amount,
@@ -258,11 +262,11 @@ impl SellAPI {
 		swap: &mut Swap,
 	) -> Result<Action, ErrorKind> {
 		let action = match swap.status {
-			Status::Created => Action::SendMessage,
+			Status::Created => Action::SendMessage(1),
 			Status::Offered => Action::ReceiveMessage,
 			Status::Accepted => unreachable!(), // Should be handled by currency specific API
 			Status::Locked => Action::ReceiveMessage,
-			Status::InitRedeem => Action::SendMessage,
+			Status::InitRedeem => Action::SendMessage(2),
 			Status::Redeem => {
 				if swap.redeem_confirmations.unwrap_or(0) == 0 {
 					match swap.find_redeem_kernel(node_client)? {

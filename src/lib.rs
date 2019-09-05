@@ -16,10 +16,11 @@ extern crate serde_json;
 extern crate sha2;
 extern crate uuid;
 
-pub use swap::api::SwapAPI;
-pub use swap::bitcoin::{BTCNodeClient, BTCSwapAPI, ElectrumNodeClient, TestBTCNodeClient};
+pub use swap::api::SwapApi;
+pub use swap::bitcoin::{BtcNodeClient, BtcSwapApi, ElectrumNodeClient, TestBtcNodeClient};
+pub use swap::message::{Message, OfferUpdate, SecondaryUpdate, Update};
 pub use swap::multisig::Builder;
-pub use swap::types::Context;
-pub use swap::Swap;
+pub use swap::types::{Action, BuyerContext, Context, Currency, Role, SellerContext, Status};
+pub use swap::{ErrorKind, Keychain, Swap};
 
 mod swap;

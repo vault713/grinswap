@@ -2,11 +2,12 @@ use super::message::*;
 use super::multisig::{Builder as MultisigBuilder, Hashed};
 use super::ser::*;
 use super::types::*;
-use super::ErrorKind;
+use super::{ErrorKind, Keychain};
+use chrono::{DateTime, Utc};
 use grin_core::core::{transaction as tx, KernelFeatures, TxKernel};
 use grin_core::libtx::secp_ser;
 use grin_core::ser;
-use grin_keychain::{Keychain, SwitchCommitmentType};
+use grin_keychain::SwitchCommitmentType;
 use grin_util::secp::key::{PublicKey, SecretKey};
 use grin_util::secp::pedersen::{Commitment, RangeProof};
 use grin_util::secp::{Message as SecpMessage, Secp256k1, Signature};
@@ -17,10 +18,12 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Swap {
 	pub id: Uuid,
+	pub idx: u32,
 	pub version: u8,
 	pub address: Option<String>,
 	pub network: Network,
 	pub role: Role,
+	pub started: DateTime<Utc>,
 	pub status: Status,
 	#[serde(with = "secp_ser::string_or_u64")]
 	pub primary_amount: u64,
@@ -51,7 +54,7 @@ pub struct Swap {
 }
 
 impl Swap {
-	pub fn finalized(&self) -> bool {
+	pub fn is_finalized(&self) -> bool {
 		use Status::*;
 
 		match self.status {

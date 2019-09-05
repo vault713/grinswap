@@ -1,4 +1,4 @@
-use super::bitcoin::BTCUpdate;
+use super::bitcoin::BtcUpdate;
 use super::multisig::ParticipantData as MultisigParticipant;
 use super::ser::*;
 use super::types::{Currency, Network};
@@ -110,11 +110,11 @@ pub struct RedeemUpdate {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum SecondaryUpdate {
 	Empty,
-	BTC(BTCUpdate),
+	BTC(BtcUpdate),
 }
 
 impl SecondaryUpdate {
-	pub fn unwrap_btc(self) -> Result<BTCUpdate, ErrorKind> {
+	pub fn unwrap_btc(self) -> Result<BtcUpdate, ErrorKind> {
 		match self {
 			SecondaryUpdate::BTC(d) => Ok(d),
 			_ => Err(ErrorKind::UnexpectedCoinType),

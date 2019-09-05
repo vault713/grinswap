@@ -29,10 +29,18 @@ uuid = { version = "0.6", features = ["serde", "v4"] }
 #grin_keychain = "2.0.0"
 #grin_store = "2.0.0"
 #grin_util = "2.0.0"
-grin_core = { path = "../grin_fork/core", version= "2.0.1-beta.1"}
-grin_keychain = { path = "../grin_fork/keychain", version= "2.0.1-beta.1"}
-grin_store = { path = "../grin_fork/store", version= "2.0.1-beta.1"}
-grin_util = { path = "../grin_fork/util", version= "2.0.1-beta.1"}
+#grin_core = { path = "../grin_fork/core", version= "2.0.1-beta.1"}
+#grin_keychain = { path = "../grin_fork/keychain", version= "2.0.1-beta.1"}
+#grin_store = { path = "../grin_fork/store", version= "2.0.1-beta.1"}
+#grin_util = { path = "../grin_fork/util", version= "2.0.1-beta.1"}
+grin_core = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+grin_keychain = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+grin_store = { git = "https://github.com/mimblewimble/grin", branch = "master" }
+grin_util = { git = "https://github.com/mimblewimble/grin", branch = "master" }
 
 #grin_wallet_libwallet = { git = "https://github.com/mimblewimble/grin-wallet", tag = "v2.0.0" }
-grin_wallet_libwallet = { path = "../grin-wallet_fork/libwallet", version = "2.1.0-beta.1" }
+#grin_wallet_libwallet = { path = "../grin-wallet_fork/libwallet", version = "2.1.0-beta.1" }
+grin_wallet_libwallet = { git = "https://github.com/jaspervdm/grin-wallet", branch = "kernel_lookup" }
+
+[patch.crates-io]
+grin_secp256k1zkp = { git = "https://github.com/jaspervdm/rust-secp256k1-zkp", branch = "master" }

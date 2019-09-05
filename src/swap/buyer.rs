@@ -1,10 +1,11 @@
 use super::message::*;
 use super::swap::{publish_transaction, tx_add_input, tx_add_output, Swap};
 use super::types::*;
-use super::{ErrorKind, CURRENT_SLATE_VERSION, CURRENT_VERSION};
+use super::{ErrorKind, Keychain, CURRENT_SLATE_VERSION, CURRENT_VERSION};
 use crate::swap::multisig::{Builder as MultisigBuilder, ParticipantData as MultisigParticipant};
+use chrono::Utc;
 use grin_core::libtx::{build, proof, tx_fee};
-use grin_keychain::{BlindSum, BlindingFactor, Keychain, SwitchCommitmentType};
+use grin_keychain::{BlindSum, BlindingFactor, SwitchCommitmentType};
 use grin_util::secp::aggsig;
 use grin_util::secp::key::{PublicKey, SecretKey};
 use grin_util::secp::pedersen::RangeProof;
@@ -13,12 +14,13 @@ use rand::thread_rng;
 use std::mem;
 use uuid::Uuid;
 
-pub struct BuyAPI {}
+pub struct BuyApi {}
 
-impl BuyAPI {
+impl BuyApi {
 	pub fn accept_swap_offer<K: Keychain>(
 		keychain: &K,
 		context: &Context,
+		address: Option<String>,
 		id: Uuid,
 		offer: OfferUpdate,
 		height: u64,
@@ -56,10 +58,12 @@ impl BuyAPI {
 
 		let mut swap = Swap {
 			id,
+			idx: 0,
 			version: CURRENT_VERSION,
-			address: None,
+			address,
 			network: offer.network,
 			role: Role::Buyer,
+			started: Utc::now(),
 			status: Status::Offered,
 			primary_amount: offer.primary_amount,
 			secondary_amount: offer.secondary_amount,
@@ -172,9 +176,9 @@ impl BuyAPI {
 		swap: &mut Swap,
 	) -> Result<Action, ErrorKind> {
 		let action = match swap.status {
-			Status::Offered => Action::SendMessage,
+			Status::Offered => Action::SendMessage(1),
 			Status::Accepted => unreachable!(), // Should be handled by currency specific API
-			Status::Locked => Action::SendMessage,
+			Status::Locked => Action::SendMessage(2),
 			Status::InitRedeem => Action::ReceiveMessage,
 			Status::Redeem => {
 				if swap.redeem_confirmations.is_none() {

@@ -1,5 +1,5 @@
 {
-  "id": "c1473010-0710-4df0-88ec-34abc3f70d7d",
+  "id": "4fc16adb-9f32-4441-b0c1-b4de076a1972",
   "inner": {
     "AcceptOffer": {
       "multisig": {
@@ -13,7 +13,7 @@
         "id": "1",
         "public_blind_excess": "0329fbb62bc719998c1146fc78955ed210bb5bf474f968cbce230175e2585fb71c",
         "public_nonce": "025095c06816053b34317505e03ec069483ea0c17a865851560c06ce1a7c01b23b",
-        "part_sig": "3bb2017c1ace060c565158867ac1a03e4869c03ee0057531343b051668c095503c1f3248d64ce165f23989a1c7212000ee98d30f9d6420f0e33a958718183d07",
+        "part_sig": "3bb2017c1ace060c565158867ac1a03e4869c03ee0057531343b051668c095508dbef5d8c85ffa7138968c04f8e9939bea2b696a0f40f884ec0f5b05e78e9c10",
         "message": null,
         "message_sig": null
       },
@@ -21,7 +21,7 @@
         "id": "1",
         "public_blind_excess": "0229fbb62bc719998c1146fc78955ed210bb5bf474f968cbce230175e2585fb71c",
         "public_nonce": "02c5feea3b4566008a8075f9d16b9259853d7575719d5608a7160f8361a52efa96",
-        "part_sig": "96fa2ea561830f16a708569d7175753d8559926bd1f975808a0066453beafec5a7e32b973ea75757cb26bdfc240881d2e96b86885ea3f2150b7fa3b648f1b125",
+        "part_sig": "96fa2ea561830f16a708569d7175753d8559926bd1f975808a0066453beafec50702100bc202f6c7b99816079035d7ebb70a9902ac0adf3ccd5d8718c5dbf80e",
         "message": null,
         "message_sig": null
       }

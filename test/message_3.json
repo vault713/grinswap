@@ -1,5 +1,5 @@
 {
-  "id": "c1473010-0710-4df0-88ec-34abc3f70d7d",
+  "id": "4fc16adb-9f32-4441-b0c1-b4de076a1972",
   "inner": {
     "InitRedeem": {
       "redeem_slate": {
@@ -9,9 +9,9 @@
           "block_header_version": 2
         },
         "num_participants": 2,
-        "id": "7e4ac85f-9fa9-4630-b1fe-35aef27765ab",
+        "id": "78aa5af1-048e-4c49-8776-a2e66d4a460c",
         "tx": {
-          "offset": "9ece64b0a7428d03148e40ab0fdfd1f68910656aec98175d7a25885692b13e6e",
+          "offset": "90de4a3812c7b78e567548c86926820d838e7e0b43346b1ba63066cd5cc7d999",
           "body": {
             "inputs": [
               {
@@ -52,7 +52,7 @@
           },
           {
             "id": "1",
-            "public_blind_excess": "030a0baa33bb463efbc837395339f6e126aff22363dec337daabc80613c60aed1b",
+            "public_blind_excess": "025a6d71e906d11a3eaa0cef3022c401a258bd08e4d57913ed7bdd0630d18baf68",
             "public_nonce": "02ddb6a6e27a05ddfe956598b806e83a6566851f85809ec69ce9a95452a0a543c2",
             "part_sig": null,
             "message": null,
@@ -60,7 +60,7 @@
           }
         ]
       },
-      "adaptor_signature": "c243a5a05254a9e99cc69e80851f8566653ae806b8986595fedd057ae2a6b6dd8db4ac8e473638a562c0ca3efc4c9bb255e4e9a4e13d7f41c18abd627f887143"
+      "adaptor_signature": "c243a5a05254a9e99cc69e80851f8566653ae806b8986595fedd057ae2a6b6dd20cea0957af2f764ab045d1177d4fa0a353428dcb8f572a9ca4b3007bcac9a0a"
     }
   },
   "inner_secondary": "Empty"

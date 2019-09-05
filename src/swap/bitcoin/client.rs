@@ -36,7 +36,7 @@ impl Hash for Output {
 	}
 }
 
-pub trait BTCNodeClient {
+pub trait BtcNodeClient: Sync + Send + 'static {
 	fn height(&mut self) -> Result<u64, ErrorKind>;
 	fn unspent(&mut self, address: &Address) -> Result<Vec<Output>, ErrorKind>;
 	fn post_tx(&mut self, tx: Vec<u8>) -> Result<(), ErrorKind>;
@@ -47,7 +47,7 @@ pub trait BTCNodeClient {
 }
 
 #[derive(Debug, Clone)]
-pub struct TestBTCNodeClientState {
+pub struct TestBtcNodeClientState {
 	pub height: u64,
 	pub tx_heights: HashMap<sha256d::Hash, u64>,
 	pub txs: HashMap<sha256d::Hash, Transaction>,
@@ -55,14 +55,14 @@ pub struct TestBTCNodeClientState {
 }
 
 #[derive(Debug, Clone)]
-pub struct TestBTCNodeClient {
-	pub state: Arc<Mutex<TestBTCNodeClientState>>,
+pub struct TestBtcNodeClient {
+	pub state: Arc<Mutex<TestBtcNodeClientState>>,
 }
 
-impl TestBTCNodeClient {
+impl TestBtcNodeClient {
 	pub fn new(height: u64) -> Self {
 		Self {
-			state: Arc::new(Mutex::new(TestBTCNodeClientState {
+			state: Arc::new(Mutex::new(TestBtcNodeClientState {
 				height,
 				tx_heights: HashMap::new(),
 				txs: HashMap::new(),
@@ -103,7 +103,7 @@ impl TestBTCNodeClient {
 	}
 }
 
-impl BTCNodeClient for TestBTCNodeClient {
+impl BtcNodeClient for TestBtcNodeClient {
 	fn height(&mut self) -> Result<u64, ErrorKind> {
 		Ok(self.state.lock().height)
 	}

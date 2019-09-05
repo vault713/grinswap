@@ -8,15 +8,17 @@ use std::io;
 
 #[derive(Clone, Eq, PartialEq, Debug, Fail)]
 pub enum ErrorKind {
+	#[fail(display = "Missing keychain")]
+	MissingKeychain,
 	#[fail(display = "Unexpected action")]
 	UnexpectedAction,
 	#[fail(display = "Unexpected network")]
 	UnexpectedNetwork,
 	#[fail(display = "Unexpected role")]
 	UnexpectedRole,
-	#[fail(display = "Unexpected status. Expected: _0, actual: _1")]
+	#[fail(display = "Unexpected status. Expected: {:?}, actual: {:?}", _0, _1)]
 	UnexpectedStatus(Status, Status),
-	#[fail(display = "Insufficient funds. Required: _0, available: _1")]
+	#[fail(display = "Insufficient funds. Required: {}, available: {}", _0, _1)]
 	InsufficientFunds(u64, u64),
 	#[fail(display = "Unexpected message type")]
 	UnexpectedMessageType,
@@ -40,23 +42,23 @@ pub enum ErrorKind {
 	OneShot,
 	#[fail(display = "Swap is already finalized")]
 	Finalized,
-	#[fail(display = "Multisig: _0")]
+	#[fail(display = "{}", _0)]
 	Multisig(multisig::ErrorKind),
-	#[fail(display = "Keychain: _0")]
+	#[fail(display = "{}", _0)]
 	Keychain(grin_keychain::Error),
-	#[fail(display = "LibWallet: _0")]
+	#[fail(display = "{}", _0)]
 	LibWallet(libwallet::ErrorKind),
-	#[fail(display = "Secp: _0")]
+	#[fail(display = "{}", _0)]
 	Secp(secp::Error),
-	#[fail(display = "I/O error: _0")]
+	#[fail(display = "I/O: {}", _0)]
 	IO(String),
 	#[fail(display = "Serde error")]
 	Serde,
-	#[fail(display = "Rpc error: _0")]
+	#[fail(display = "Rpc: {}", _0)]
 	Rpc(&'static str),
-	#[fail(display = "Node client error: _0")]
+	#[fail(display = "{}", _0)]
 	NodeClient(String),
-	#[fail(display = "_0")]
+	#[fail(display = "{}", _0)]
 	Generic(String),
 }
 

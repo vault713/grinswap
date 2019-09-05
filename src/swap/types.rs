@@ -1,10 +1,11 @@
-use super::bitcoin::{BTCBuyerContext, BTCData, BTCSellerContext};
+use super::bitcoin::{BtcBuyerContext, BtcData, BtcSellerContext};
 use super::ser::*;
 use super::ErrorKind;
 use grin_core::global::ChainTypes;
 use grin_core::ser;
 use grin_keychain::Identifier;
 use grin_util::secp::key::SecretKey;
+use std::fmt;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Network {
@@ -61,28 +62,45 @@ pub enum Status {
 	Cancelled,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Currency {
-	BTC,
+	Btc,
+}
+
+impl Currency {
+	pub fn exponent(&self) -> u64 {
+		match self {
+			Currency::Btc => 8,
+		}
+	}
+}
+
+impl fmt::Display for Currency {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		let disp = match &self {
+			Currency::Btc => "BTC",
+		};
+		write!(f, "{}", disp)
+	}
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum SecondaryData {
 	Empty,
-	BTC(BTCData),
+	Btc(BtcData),
 }
 
 impl SecondaryData {
-	pub fn unwrap_btc(&self) -> Result<&BTCData, ErrorKind> {
+	pub fn unwrap_btc(&self) -> Result<&BtcData, ErrorKind> {
 		match self {
-			SecondaryData::BTC(d) => Ok(d),
+			SecondaryData::Btc(d) => Ok(d),
 			_ => Err(ErrorKind::UnexpectedCoinType),
 		}
 	}
 
-	pub fn unwrap_btc_mut(&mut self) -> Result<&mut BTCData, ErrorKind> {
+	pub fn unwrap_btc_mut(&mut self) -> Result<&mut BtcData, ErrorKind> {
 		match self {
-			SecondaryData::BTC(d) => Ok(d),
+			SecondaryData::Btc(d) => Ok(d),
 			_ => Err(ErrorKind::UnexpectedCoinType),
 		}
 	}
@@ -146,9 +164,9 @@ pub struct SellerContext {
 }
 
 impl SellerContext {
-	pub fn unwrap_btc(&self) -> Result<&BTCSellerContext, ErrorKind> {
+	pub fn unwrap_btc(&self) -> Result<&BtcSellerContext, ErrorKind> {
 		match &self.secondary_context {
-			SecondarySellerContext::BTC(c) => Ok(c),
+			SecondarySellerContext::Btc(c) => Ok(c),
 			//_ => Err(ErrorKind::UnexpectedCoinType),
 		}
 	}
@@ -162,9 +180,9 @@ pub struct BuyerContext {
 }
 
 impl BuyerContext {
-	pub fn unwrap_btc(&self) -> Result<&BTCBuyerContext, ErrorKind> {
+	pub fn unwrap_btc(&self) -> Result<&BtcBuyerContext, ErrorKind> {
 		match &self.secondary_context {
-			SecondaryBuyerContext::BTC(c) => Ok(c),
+			SecondaryBuyerContext::Btc(c) => Ok(c),
 			//_ => Err(ErrorKind::UnexpectedCoinType),
 		}
 	}
@@ -172,12 +190,12 @@ impl BuyerContext {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum SecondarySellerContext {
-	BTC(BTCSellerContext),
+	Btc(BtcSellerContext),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum SecondaryBuyerContext {
-	BTC(BTCBuyerContext),
+	Btc(BtcBuyerContext),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -185,7 +203,7 @@ pub enum Action {
 	/// No further action required
 	None,
 	/// Send a message to the counterparty
-	SendMessage,
+	SendMessage(usize),
 	/// Wait for a message from the counterparty
 	ReceiveMessage,
 	/// Publish a transaction to the network

@@ -1,22 +1,24 @@
 {
-  "id": "c1473010-0710-4df0-88ec-34abc3f70d7d",
+  "id": "4fc16adb-9f32-4441-b0c1-b4de076a1972",
+  "idx": 0,
   "version": 1,
   "address": null,
   "network": "Floonet",
   "role": "Buyer",
+  "started": "2019-09-04T21:22:33.386997Z",
   "status": "InitRedeem",
   "primary_amount": "100000000000",
   "secondary_amount": "3000000",
-  "secondary_currency": "BTC",
+  "secondary_currency": "Btc",
   "secondary_data": {
-    "BTC": {
-      "lock_time": 1567389263,
+    "Btc": {
+      "lock_time": 1567718553,
       "cosign": "03b480859d2dcf9cd66f115b685b2847bf3f52f624d069d802e1dc9362be4f5bdf",
       "refund": "03434496eb1554ad47c7ec5c267e902e1b71a03e189cc4fe9c83d9513e3a4e2e5a",
       "confirmed_outputs": [
         {
           "out_point": {
-            "txid": "bfef25fa5575593188ea5dc43c811756362a2c8719d8e4ca7951ec46a6072a3d",
+            "txid": "10680559dfda56f7118f970c276069316a5df3c4609cfe2b0a6dcd6d58f15f49",
             "vout": 0
           },
           "value": 2000000,
@@ -24,7 +26,7 @@
         },
         {
           "out_point": {
-            "txid": "3d06ea7946f5e1c48204064b86476de9d81ee3d85c9d34a27b12605cfcad2fc2",
+            "txid": "2a97b5c3ba148a25701334e809b518287e6dad586e8aeac153a2bd11bc9a6bef",
             "vout": 0
           },
           "value": 1000000,
@@ -66,9 +68,9 @@
       "block_header_version": 2
     },
     "num_participants": 2,
-    "id": "1605f8d1-595e-4a7e-bffe-7069e8362bf6",
+    "id": "55b79f54-c40d-45e1-9544-a52dcf426db2",
     "tx": {
-      "offset": "15f95c2c1be50143e338a50098758ba811295a9c348dd27d403c8df743f31f95",
+      "offset": "d9da697c9c8bf7ff85116dd401f53e4d58bc0155fb6db56b15a99aa8884a44e9",
       "body": {
         "inputs": [
           {
@@ -110,7 +112,7 @@
     "participant_data": [
       {
         "id": "0",
-        "public_blind_excess": "02f6ab6bedc69c5547bce178dc4403ae96045420cc10f1a3500f8d321929c4a6e0",
+        "public_blind_excess": "032d880fed456271de6a686fe401c0a7cfd6e6d435373ad81bf7c5d37c14b262aa",
         "public_nonce": "027bc719d764cf3d6e88741c45ff42032d06489b3710106c4ced4fdccc05071886",
         "part_sig": null,
         "message": null,
@@ -120,7 +122,7 @@
         "id": "1",
         "public_blind_excess": "0329fbb62bc719998c1146fc78955ed210bb5bf474f968cbce230175e2585fb71c",
         "public_nonce": "025095c06816053b34317505e03ec069483ea0c17a865851560c06ce1a7c01b23b",
-        "part_sig": "3bb2017c1ace060c565158867ac1a03e4869c03ee0057531343b051668c095503c1f3248d64ce165f23989a1c7212000ee98d30f9d6420f0e33a958718183d07",
+        "part_sig": "3bb2017c1ace060c565158867ac1a03e4869c03ee0057531343b051668c095508dbef5d8c85ffa7138968c04f8e9939bea2b696a0f40f884ec0f5b05e78e9c10",
         "message": null,
         "message_sig": null
       }
@@ -134,9 +136,9 @@
       "block_header_version": 2
     },
     "num_participants": 2,
-    "id": "f895cb70-89a1-45d6-9c50-591fedc35c46",
+    "id": "703fac15-913c-4e66-a7c2-5f648ca4ca7d",
     "tx": {
-      "offset": "1b3b8c54e8048021d3a9106f324e020410f10e4c6db20d2a3a694dd5bbe7ea75",
+      "offset": "53ac7d0ad9833568cf63dfa8aa607e2b27be525111b1e0de92aa0caa50f838ae",
       "body": {
         "inputs": [
           {
@@ -169,7 +171,7 @@
     "participant_data": [
       {
         "id": "0",
-        "public_blind_excess": "02613885932ce2c7e753de7607d5338ad336c9e19b8b3245bfe76eef2981a20d63",
+        "public_blind_excess": "037cdabea8804a6e163c19011cb13d9b87539468a2a41bcc3635f73ae020e408e6",
         "public_nonce": "030807d599117d315ffd92de2f4db0b5e04aa42ee5e71cbc4b7da3ed45ba10f0b9",
         "part_sig": null,
         "message": null,
@@ -179,7 +181,7 @@
         "id": "1",
         "public_blind_excess": "0229fbb62bc719998c1146fc78955ed210bb5bf474f968cbce230175e2585fb71c",
         "public_nonce": "02c5feea3b4566008a8075f9d16b9259853d7575719d5608a7160f8361a52efa96",
-        "part_sig": "96fa2ea561830f16a708569d7175753d8559926bd1f975808a0066453beafec5a7e32b973ea75757cb26bdfc240881d2e96b86885ea3f2150b7fa3b648f1b125",
+        "part_sig": "96fa2ea561830f16a708569d7175753d8559926bd1f975808a0066453beafec50702100bc202f6c7b99816079035d7ebb70a9902ac0adf3ccd5d8718c5dbf80e",
         "message": null,
         "message_sig": null
       }
@@ -192,9 +194,9 @@
       "block_header_version": 2
     },
     "num_participants": 2,
-    "id": "7e4ac85f-9fa9-4630-b1fe-35aef27765ab",
+    "id": "78aa5af1-048e-4c49-8776-a2e66d4a460c",
     "tx": {
-      "offset": "9ece64b0a7428d03148e40ab0fdfd1f68910656aec98175d7a25885692b13e6e",
+      "offset": "90de4a3812c7b78e567548c86926820d838e7e0b43346b1ba63066cd5cc7d999",
       "body": {
         "inputs": [
           {
@@ -235,7 +237,7 @@
       },
       {
         "id": "1",
-        "public_blind_excess": "030a0baa33bb463efbc837395339f6e126aff22363dec337daabc80613c60aed1b",
+        "public_blind_excess": "025a6d71e906d11a3eaa0cef3022c401a258bd08e4d57913ed7bdd0630d18baf68",
         "public_nonce": "02ddb6a6e27a05ddfe956598b806e83a6566851f85809ec69ce9a95452a0a543c2",
         "part_sig": null,
         "message": null,
@@ -244,5 +246,5 @@
     ]
   },
   "redeem_confirmations": null,
-  "adaptor_signature": "c243a5a05254a9e99cc69e80851f8566653ae806b8986595fedd057ae2a6b6dd8db4ac8e473638a562c0ca3efc4c9bb255e4e9a4e13d7f41c18abd627f887143"
+  "adaptor_signature": "c243a5a05254a9e99cc69e80851f8566653ae806b8986595fedd057ae2a6b6dd20cea0957af2f764ab045d1177d4fa0a353428dcb8f572a9ca4b3007bcac9a0a"
 }

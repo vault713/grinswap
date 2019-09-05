@@ -1,12 +1,12 @@
 {
-  "id": "c1473010-0710-4df0-88ec-34abc3f70d7d",
+  "id": "4fc16adb-9f32-4441-b0c1-b4de076a1972",
   "inner": {
     "Redeem": {
       "redeem_participant": {
         "id": "0",
         "public_blind_excess": "0267084e1cd57ab8bea0a631397d6addced43d13b154d9bbc39850b82a59a4940c",
         "public_nonce": "0252cb796558103905ccf66987645382a19b8b2abebe501f63c1862cbe152da0fd",
-        "part_sig": "fda02d15be2c86c1631f50bebe2a8b9ba18253648769f6cc053910586579cb527574eeb19bc2591e8babf4fa976fef9084468dbd9f46a729d86d540b0d611533",
+        "part_sig": "fda02d15be2c86c1631f50bebe2a8b9ba18253648769f6cc053910586579cb52bd1db78bcfe5f6e74a7be40ce106ffaf60827a1e691796f8f01f2074c532cf6a",
         "message": null,
         "message_sig": null
       }

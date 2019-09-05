@@ -1,5 +1,6 @@
 {
-  "id": "c1473010-0710-4df0-88ec-34abc3f70d7d",
+  "id": "4fc16adb-9f32-4441-b0c1-b4de076a1972",
+  "idx": 0,
   "version": 1,
   "address": null,
   "network": "Floonet",
@@ -9,13 +10,14 @@
       19993000000
     ]
   },
+  "started": "2019-09-04T21:22:32.581245Z",
   "status": "Offered",
   "primary_amount": "100000000000",
   "secondary_amount": "3000000",
-  "secondary_currency": "BTC",
+  "secondary_currency": "Btc",
   "secondary_data": {
-    "BTC": {
-      "lock_time": 1567389263,
+    "Btc": {
+      "lock_time": 1567718553,
       "cosign": "03b480859d2dcf9cd66f115b685b2847bf3f52f624d069d802e1dc9362be4f5bdf",
       "refund": null,
       "confirmed_outputs": [],
@@ -47,9 +49,9 @@
       "block_header_version": 2
     },
     "num_participants": 2,
-    "id": "1605f8d1-595e-4a7e-bffe-7069e8362bf6",
+    "id": "55b79f54-c40d-45e1-9544-a52dcf426db2",
     "tx": {
-      "offset": "15f95c2c1be50143e338a50098758ba811295a9c348dd27d403c8df743f31f95",
+      "offset": "d9da697c9c8bf7ff85116dd401f53e4d58bc0155fb6db56b15a99aa8884a44e9",
       "body": {
         "inputs": [
           {
@@ -86,7 +88,7 @@
     "participant_data": [
       {
         "id": "0",
-        "public_blind_excess": "02f6ab6bedc69c5547bce178dc4403ae96045420cc10f1a3500f8d321929c4a6e0",
+        "public_blind_excess": "032d880fed456271de6a686fe401c0a7cfd6e6d435373ad81bf7c5d37c14b262aa",
         "public_nonce": "027bc719d764cf3d6e88741c45ff42032d06489b3710106c4ced4fdccc05071886",
         "part_sig": null,
         "message": null,
@@ -102,9 +104,9 @@
       "block_header_version": 2
     },
     "num_participants": 2,
-    "id": "f895cb70-89a1-45d6-9c50-591fedc35c46",
+    "id": "703fac15-913c-4e66-a7c2-5f648ca4ca7d",
     "tx": {
-      "offset": "1b3b8c54e8048021d3a9106f324e020410f10e4c6db20d2a3a694dd5bbe7ea75",
+      "offset": "53ac7d0ad9833568cf63dfa8aa607e2b27be525111b1e0de92aa0caa50f838ae",
       "body": {
         "inputs": [],
         "outputs": [
@@ -132,7 +134,7 @@
     "participant_data": [
       {
         "id": "0",
-        "public_blind_excess": "02613885932ce2c7e753de7607d5338ad336c9e19b8b3245bfe76eef2981a20d63",
+        "public_blind_excess": "037cdabea8804a6e163c19011cb13d9b87539468a2a41bcc3635f73ae020e408e6",
         "public_nonce": "030807d599117d315ffd92de2f4db0b5e04aa42ee5e71cbc4b7da3ed45ba10f0b9",
         "part_sig": null,
         "message": null,
@@ -147,7 +149,7 @@
       "block_header_version": 2
     },
     "num_participants": 2,
-    "id": "6e571109-4dc5-45f3-9215-12f9b6432928",
+    "id": "fc750aae-035f-4c6c-bb0c-05aabc764f8e",
     "tx": {
       "offset": "0000000000000000000000000000000000000000000000000000000000000000",
       "body": {

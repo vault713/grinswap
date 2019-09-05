@@ -13,20 +13,22 @@ pub use self::error::ErrorKind;
 pub use self::swap::Swap;
 pub use self::types::Context;
 
-pub(crate) use self::api::SwapAPI;
-pub(crate) use self::buyer::BuyAPI;
-pub(crate) use self::seller::SellAPI;
+pub(crate) use self::api::SwapApi;
+pub(crate) use self::buyer::BuyApi;
+pub(crate) use self::seller::SellApi;
+
+pub trait Keychain: grin_keychain::Keychain + Clone + 'static {}
+impl Keychain for grin_keychain::ExtKeychain {}
 
 use libwallet::SlateVersion;
-
 const CURRENT_VERSION: u8 = 1;
 const CURRENT_SLATE_VERSION: SlateVersion = SlateVersion::V2;
 
 #[cfg(test)]
 mod tests {
-	use crate::bitcoin::network::constants::Network as BTCNetwork;
-	use crate::bitcoin::util::key::PublicKey as BTCPublicKey;
-	use crate::bitcoin::{Address, Transaction as BTCTransaction, TxOut};
+	use crate::bitcoin::network::constants::Network as BtcNetwork;
+	use crate::bitcoin::util::key::PublicKey as BtcPublicKey;
+	use crate::bitcoin::{Address, Transaction as BtcTransaction, TxOut};
 	use grin_core::core::transaction::Weighting;
 	use grin_core::core::verifier_cache::LruVerifierCache;
 	use grin_core::core::{Transaction, TxKernel};
@@ -71,7 +73,7 @@ mod tests {
 				],
 				change_output: key_id(0, 3),
 				refund_output: key_id(0, 4),
-				secondary_context: SecondarySellerContext::BTC(BTCSellerContext {
+				secondary_context: SecondarySellerContext::Btc(BtcSellerContext {
 					cosign: key_id(0, 5),
 				}),
 			}),
@@ -88,7 +90,7 @@ mod tests {
 			role_context: RoleContext::Buyer(BuyerContext {
 				output: key_id(0, 1),
 				redeem: key_id(0, 2),
-				secondary_context: SecondaryBuyerContext::BTC(BTCBuyerContext {
+				secondary_context: SecondaryBuyerContext::Btc(BtcBuyerContext {
 					refund: key_id(0, 3),
 				}),
 			}),
@@ -107,11 +109,11 @@ mod tests {
 	fn btc_address(kc: &ExtKeychain) -> String {
 		let key = PublicKey::from_secret_key(kc.secp(), &key(kc, 2, 0)).unwrap();
 		let address = Address::p2pkh(
-			&BTCPublicKey {
+			&BtcPublicKey {
 				compressed: true,
 				key,
 			},
-			BTCNetwork::Testnet,
+			BtcNetwork::Testnet,
 		);
 		format!("{}", address)
 	}
@@ -300,16 +302,18 @@ mod tests {
 		let secondary_redeem_address = btc_address(&kc_sell);
 		let height = 100_000;
 
-		let mut api_sell = BTCSwapAPI::new(
-			kc_sell,
+		let mut api_sell = BtcSwapApi::new(
+			Some(kc_sell),
 			TestNodeClient::new(height),
-			TestBTCNodeClient::new(1),
+			TestBtcNodeClient::new(1),
 		);
 		let (swap, _) = api_sell
 			.create_swap_offer(
 				&ctx_sell,
+				None,
 				100 * GRIN_UNIT,
 				3_000_000,
+				Currency::Btc,
 				secondary_redeem_address,
 			)
 			.unwrap();
@@ -318,12 +322,12 @@ mod tests {
 		// Simulate short refund lock time by passing height+4h
 		let kc_buy = keychain(2);
 		let ctx_buy = context_buy(&kc_buy);
-		let mut api_buy = BTCSwapAPI::new(
-			kc_buy,
+		let mut api_buy = BtcSwapApi::new(
+			Some(kc_buy),
 			TestNodeClient::new(height + 4 * 60),
-			TestBTCNodeClient::new(1),
+			TestBtcNodeClient::new(1),
 		);
-		let res = api_buy.accept_swap_offer(&ctx_buy, message);
+		let res = api_buy.accept_swap_offer(&ctx_buy, None, message);
 		assert_eq!(res.err().unwrap(), ErrorKind::InvalidLockHeightRefundTx); // Swap cannot be accepted
 	}
 
@@ -336,7 +340,7 @@ mod tests {
 		let secondary_redeem_address = btc_address(&kc_sell);
 
 		let nc = TestNodeClient::new(300_000);
-		let btc_nc = TestBTCNodeClient::new(500_000);
+		let btc_nc = TestBtcNodeClient::new(500_000);
 
 		let amount = 100 * GRIN_UNIT;
 		let btc_amount_1 = 2_000_000;
@@ -344,11 +348,18 @@ mod tests {
 		let btc_amount = btc_amount_1 + btc_amount_2;
 
 		// Seller: create swap offer
-		let mut api_sell = BTCSwapAPI::new(kc_sell, nc.clone(), btc_nc.clone());
+		let mut api_sell = BtcSwapApi::new(Some(kc_sell), nc.clone(), btc_nc.clone());
 		let (mut swap_sell, action) = api_sell
-			.create_swap_offer(&ctx_sell, amount, btc_amount, secondary_redeem_address)
+			.create_swap_offer(
+				&ctx_sell,
+				None,
+				amount,
+				btc_amount,
+				Currency::Btc,
+				secondary_redeem_address,
+			)
 			.unwrap();
-		assert_eq!(action, Action::SendMessage);
+		assert_eq!(action, Action::SendMessage(1));
 		assert_eq!(swap_sell.status, Status::Created);
 		let message_1 = api_sell.message(&swap_sell).unwrap();
 		let action = api_sell.message_sent(&mut swap_sell, &ctx_sell).unwrap();
@@ -384,10 +395,12 @@ mod tests {
 		let ctx_buy = context_buy(&kc_buy);
 
 		// Buyer: accept swap offer
-		let mut api_buy = BTCSwapAPI::new(kc_buy, nc.clone(), btc_nc.clone());
-		let (mut swap_buy, action) = api_buy.accept_swap_offer(&ctx_buy, message_1).unwrap();
+		let mut api_buy = BtcSwapApi::new(Some(kc_buy), nc.clone(), btc_nc.clone());
+		let (mut swap_buy, action) = api_buy
+			.accept_swap_offer(&ctx_buy, None, message_1)
+			.unwrap();
 		assert_eq!(swap_buy.status, Status::Offered);
-		assert_eq!(action, Action::SendMessage);
+		assert_eq!(action, Action::SendMessage(1));
 		let message_2 = api_buy.message(&swap_buy).unwrap();
 		let action = api_buy.message_sent(&mut swap_buy, &ctx_buy).unwrap();
 
@@ -403,7 +416,7 @@ mod tests {
 		let address = Address::from_str(&address).unwrap();
 
 		// Buyer: first deposit
-		let tx_1 = BTCTransaction {
+		let tx_1 = BtcTransaction {
 			version: 2,
 			lock_time: 0,
 			input: vec![],
@@ -422,7 +435,7 @@ mod tests {
 
 		// Buyer: second deposit
 		btc_nc.mine_blocks(2);
-		let tx_2 = BTCTransaction {
+		let tx_2 = BtcTransaction {
 			version: 2,
 			lock_time: 0,
 			input: vec![],
@@ -558,7 +571,7 @@ mod tests {
 
 		// Buyer: start redeem
 		let action = api_buy.required_action(&mut swap_buy, &ctx_buy).unwrap();
-		assert_eq!(action, Action::SendMessage);
+		assert_eq!(action, Action::SendMessage(2));
 		assert_eq!(swap_buy.status, Status::Locked);
 		let message_3 = api_buy.message(&swap_buy).unwrap();
 		api_buy.message_sent(&mut swap_buy, &ctx_buy).unwrap();
@@ -583,7 +596,7 @@ mod tests {
 		let action = api_sell
 			.receive_message(&mut swap_sell, &ctx_sell, message_3)
 			.unwrap();
-		assert_eq!(action, Action::SendMessage);
+		assert_eq!(action, Action::SendMessage(2));
 		assert_eq!(swap_sell.status, Status::InitRedeem);
 		let message_4 = api_sell.message(&swap_sell).unwrap();
 		let action = api_sell.message_sent(&mut swap_sell, &ctx_sell).unwrap();

@@ -236,7 +236,7 @@ impl ElectrumNodeClient {
 	}
 }
 
-impl BTCNodeClient for ElectrumNodeClient {
+impl BtcNodeClient for ElectrumNodeClient {
 	/// Fetch the current chain height
 	fn height(&mut self) -> Result<u64, ErrorKind> {
 		// The proper way to do this is to download all the block headers
@@ -320,7 +320,7 @@ struct ElectrumResponseError {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::swap::bitcoin::BTCData;
+	use crate::swap::bitcoin::BtcData;
 	use crate::swap::types::Network;
 	use bitcoin_hashes::hex::FromHex;
 	use bitcoin_hashes::sha256d::Hash;
@@ -352,7 +352,7 @@ mod tests {
 		}
 		let mut client = client.expect("Unable to connect to any of the testnet Electrum servers");
 
-		let mut data = BTCData {
+		let mut data = BtcData {
 			lock_time: 1541355814,
 			cosign: PublicKey::from_slice(
 				&secp,

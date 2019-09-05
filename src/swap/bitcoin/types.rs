@@ -2,16 +2,16 @@ use super::client::Output;
 use crate::swap::message::SecondaryUpdate;
 use crate::swap::ser::*;
 use crate::swap::types::{Network, SecondaryData};
-use crate::swap::ErrorKind;
+use crate::swap::{ErrorKind, Keychain};
 use bitcoin::blockdata::opcodes::{all::*, OP_FALSE};
 use bitcoin::blockdata::script::Builder;
 use bitcoin::consensus::Encodable;
-use bitcoin::network::constants::Network as BTCNetwork;
+use bitcoin::network::constants::Network as BtcNetwork;
 use bitcoin::{Address, Script, Transaction, TxIn, TxOut, VarInt};
 use bitcoin_hashes::sha256d;
 use byteorder::{ByteOrder, LittleEndian};
 use chrono::Utc;
-use grin_keychain::{Identifier, Keychain, SwitchCommitmentType};
+use grin_keychain::{Identifier, SwitchCommitmentType};
 use grin_util::secp::key::{PublicKey, SecretKey};
 use grin_util::secp::{Message, Secp256k1, Signature};
 use std::io::Cursor;
@@ -19,14 +19,14 @@ use std::ops::Deref;
 use std::time::Duration;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct BTCRedeemTx {
+pub struct BtcRedeemTx {
 	pub txid: sha256d::Hash,
 	#[serde(serialize_with = "bytes_to_hex", deserialize_with = "bytes_from_hex")]
 	pub tx: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct BTCData {
+pub struct BtcData {
 	pub lock_time: u32,
 	/// Key owned by seller
 	#[serde(serialize_with = "pubkey_to_hex", deserialize_with = "pubkey_from_hex")]
@@ -39,16 +39,16 @@ pub struct BTCData {
 	pub refund: Option<PublicKey>,
 	pub confirmed_outputs: Vec<Output>,
 	pub locked: bool,
-	pub redeem_tx: Option<BTCRedeemTx>,
+	pub redeem_tx: Option<BtcRedeemTx>,
 	pub redeem_confirmations: Option<u64>,
 	#[serde(skip)]
 	pub script: Option<Script>,
 }
 
-impl BTCData {
+impl BtcData {
 	pub(crate) fn new<K>(
 		keychain: &K,
-		context: &BTCSellerContext,
+		context: &BtcSellerContext,
 		duration: Duration,
 	) -> Result<Self, ErrorKind>
 	where
@@ -76,8 +76,8 @@ impl BTCData {
 
 	pub(crate) fn from_offer<K>(
 		keychain: &K,
-		offer: BTCOfferUpdate,
-		context: &BTCBuyerContext,
+		offer: BtcOfferUpdate,
+		context: &BtcBuyerContext,
 	) -> Result<Self, ErrorKind>
 	where
 		K: Keychain,
@@ -98,14 +98,14 @@ impl BTCData {
 
 	pub(crate) fn accepted_offer(
 		&mut self,
-		accepted_offer: BTCAcceptOfferUpdate,
+		accepted_offer: BtcAcceptOfferUpdate,
 	) -> Result<(), ErrorKind> {
 		self.refund = Some(accepted_offer.refund);
 		Ok(())
 	}
 
 	pub(crate) fn wrap(self) -> SecondaryData {
-		SecondaryData::BTC(self)
+		SecondaryData::Btc(self)
 	}
 
 	/// Generate the multisig-with-timelocked-refund script
@@ -220,7 +220,7 @@ impl BTCData {
 			.consensus_encode(&mut cursor)
 			.map_err(|_| ErrorKind::Generic("Unable to encode redeem tx".into()))?;
 
-		self.redeem_tx = Some(BTCRedeemTx {
+		self.redeem_tx = Some(BtcRedeemTx {
 			txid: tx.txid(),
 			tx: cursor.into_inner(),
 		});
@@ -257,47 +257,47 @@ impl BTCData {
 		Ok(script_sig)
 	}
 
-	pub(crate) fn offer_update(&self) -> BTCUpdate {
-		BTCUpdate::Offer(BTCOfferUpdate {
+	pub(crate) fn offer_update(&self) -> BtcUpdate {
+		BtcUpdate::Offer(BtcOfferUpdate {
 			lock_time: self.lock_time,
 			cosign: self.cosign.clone(),
 		})
 	}
 
-	pub(crate) fn accept_offer_update(&self) -> Result<BTCUpdate, ErrorKind> {
-		Ok(BTCUpdate::AcceptOffer(BTCAcceptOfferUpdate {
+	pub(crate) fn accept_offer_update(&self) -> Result<BtcUpdate, ErrorKind> {
+		Ok(BtcUpdate::AcceptOffer(BtcAcceptOfferUpdate {
 			refund: self.refund.ok_or(ErrorKind::UnexpectedMessageType)?.clone(),
 		}))
 	}
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct BTCSellerContext {
+pub struct BtcSellerContext {
 	pub cosign: Identifier,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct BTCBuyerContext {
+pub struct BtcBuyerContext {
 	pub refund: Identifier,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum BTCUpdate {
-	Offer(BTCOfferUpdate),
-	AcceptOffer(BTCAcceptOfferUpdate),
+pub enum BtcUpdate {
+	Offer(BtcOfferUpdate),
+	AcceptOffer(BtcAcceptOfferUpdate),
 }
 
-impl BTCUpdate {
-	pub fn unwrap_offer(self) -> Result<BTCOfferUpdate, ErrorKind> {
+impl BtcUpdate {
+	pub fn unwrap_offer(self) -> Result<BtcOfferUpdate, ErrorKind> {
 		match self {
-			BTCUpdate::Offer(u) => Ok(u),
+			BtcUpdate::Offer(u) => Ok(u),
 			_ => Err(ErrorKind::UnexpectedMessageType),
 		}
 	}
 
-	pub fn unwrap_accept_offer(self) -> Result<BTCAcceptOfferUpdate, ErrorKind> {
+	pub fn unwrap_accept_offer(self) -> Result<BtcAcceptOfferUpdate, ErrorKind> {
 		match self {
-			BTCUpdate::AcceptOffer(u) => Ok(u),
+			BtcUpdate::AcceptOffer(u) => Ok(u),
 			_ => Err(ErrorKind::UnexpectedMessageType),
 		}
 	}
@@ -308,22 +308,22 @@ impl BTCUpdate {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct BTCOfferUpdate {
+pub struct BtcOfferUpdate {
 	pub lock_time: u32,
 	#[serde(serialize_with = "pubkey_to_hex", deserialize_with = "pubkey_from_hex")]
 	pub cosign: PublicKey,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct BTCAcceptOfferUpdate {
+pub struct BtcAcceptOfferUpdate {
 	#[serde(serialize_with = "pubkey_to_hex", deserialize_with = "pubkey_from_hex")]
 	pub refund: PublicKey,
 }
 
-fn btc_network(network: Network) -> BTCNetwork {
+fn btc_network(network: Network) -> BtcNetwork {
 	match network {
-		Network::Floonet => BTCNetwork::Testnet,
-		Network::Mainnet => BTCNetwork::Bitcoin,
+		Network::Floonet => BtcNetwork::Testnet,
+		Network::Mainnet => BtcNetwork::Bitcoin,
 	}
 }
 
@@ -345,7 +345,7 @@ mod tests {
 	fn test_lock_script() {
 		let secp = Secp256k1::with_caps(ContextFlag::Commit);
 
-		let mut data = BTCData {
+		let mut data = BtcData {
 			lock_time: 1541355813,
 			cosign: PublicKey::from_slice(
 				&secp,
@@ -403,7 +403,7 @@ mod tests {
 		let refund = SecretKey::new(&secp, rng);
 		let redeem = SecretKey::new(&secp, rng);
 
-		let mut data = BTCData {
+		let mut data = BtcData {
 			lock_time: Utc::now().timestamp() as u32,
 			cosign: PublicKey::from_secret_key(&secp, &cosign).unwrap(),
 			refund: Some(PublicKey::from_secret_key(&secp, &refund).unwrap()),

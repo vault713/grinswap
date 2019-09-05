@@ -1,33 +1,37 @@
-use super::client::BTCNodeClient;
-use super::types::BTCData;
+use super::client::BtcNodeClient;
+use super::types::{BtcBuyerContext, BtcData, BtcSellerContext};
 use crate::swap::message::{Message, Update};
-use crate::swap::types::{Action, Context, Currency, Role, Status};
-use crate::swap::{BuyAPI, ErrorKind, SellAPI, Swap, SwapAPI};
+use crate::swap::types::{
+	Action, BuyerContext, Context, Currency, Role, RoleContext, SecondaryBuyerContext,
+	SecondarySellerContext, SellerContext, Status,
+};
+use crate::swap::{BuyApi, ErrorKind, Keychain, SellApi, Swap, SwapApi};
 use bitcoin::{Address, AddressType};
-use grin_keychain::{Keychain, SwitchCommitmentType};
+use grin_keychain::{Identifier, SwitchCommitmentType};
+use grin_util::secp::aggsig::export_secnonce_single as generate_nonce;
 use libwallet::NodeClient;
 use std::str::FromStr;
 use std::time::Duration;
 
-pub struct BTCSwapAPI<K, C, B>
+pub struct BtcSwapApi<K, C, B>
 where
 	K: Keychain,
 	C: NodeClient,
-	B: BTCNodeClient,
+	B: BtcNodeClient,
 {
-	keychain: K,
+	keychain: Option<K>,
 	node_client: C,
 	btc_node_client: B,
 }
 
-impl<K, C, B> BTCSwapAPI<K, C, B>
+impl<K, C, B> BtcSwapApi<K, C, B>
 where
 	K: Keychain,
 	C: NodeClient,
-	B: BTCNodeClient,
+	B: BtcNodeClient,
 {
 	/// Create BTC Swap API instance
-	pub fn new(keychain: K, node_client: C, btc_node_client: B) -> Self {
+	pub fn new(keychain: Option<K>, node_client: C, btc_node_client: B) -> Self {
 		Self {
 			keychain,
 			node_client,
@@ -35,10 +39,17 @@ where
 		}
 	}
 
+	fn keychain(&self) -> Result<&K, ErrorKind> {
+		match &self.keychain {
+			Some(k) => Ok(k),
+			None => Err(ErrorKind::MissingKeychain),
+		}
+	}
+
 	fn script(&self, swap: &mut Swap) -> Result<(), ErrorKind> {
 		let btc_data = swap.secondary_data.unwrap_btc_mut()?;
 		btc_data.script(
-			self.keychain.secp(),
+			self.keychain()?.secp(),
 			swap.redeem_public
 				.as_ref()
 				.ok_or(ErrorKind::UnexpectedAction)?,
@@ -104,7 +115,7 @@ where
 				None => return Ok(Some(Action::PublishTx)),
 				Some(_) => {
 					let confirmations =
-						swap.update_lock_confirmations(self.keychain.secp(), &self.node_client)?;
+						swap.update_lock_confirmations(self.keychain()?.secp(), &self.node_client)?;
 					if !swap.is_locked(30) {
 						return Ok(Some(Action::Confirmations {
 							required: 30,
@@ -163,7 +174,7 @@ where
 		let (_, accept_offer, secondary_update) = message.unwrap_accept_offer()?;
 		let btc_update = secondary_update.unwrap_btc()?.unwrap_accept_offer()?;
 
-		SellAPI::accepted_offer(&self.keychain, swap, context, accept_offer)?;
+		SellApi::accepted_offer(self.keychain()?, swap, context, accept_offer)?;
 		let btc_data = swap.secondary_data.unwrap_btc_mut()?;
 		btc_data.accepted_offer(btc_update)?;
 
@@ -178,7 +189,7 @@ where
 		message: Message,
 	) -> Result<(), ErrorKind> {
 		let (_, init_redeem, _) = message.unwrap_init_redeem()?;
-		SellAPI::init_redeem(&self.keychain, swap, context, init_redeem)?;
+		SellApi::init_redeem(self.keychain()?, swap, context, init_redeem)?;
 
 		Ok(())
 	}
@@ -192,10 +203,10 @@ where
 		let redeem_address = Address::from_str(&swap.unwrap_seller()?.0)
 			.map_err(|_| ErrorKind::Generic("Unable to parse BTC redeem address".into()))?;
 
-		let cosign_secret = self
-			.keychain
-			.derive_key(0, cosign_id, &SwitchCommitmentType::None)?;
-		let redeem_secret = SellAPI::calculate_redeem_secret(&self.keychain, swap)?;
+		let cosign_secret =
+			self.keychain()?
+				.derive_key(0, cosign_id, &SwitchCommitmentType::None)?;
+		let redeem_secret = SellApi::calculate_redeem_secret(self.keychain()?, swap)?;
 
 		// This function should only be called once
 		let btc_data = swap.secondary_data.unwrap_btc_mut()?;
@@ -204,7 +215,7 @@ where
 		}
 
 		btc_data.redeem_tx(
-			self.keychain.secp(),
+			self.keychain()?.secp(),
 			&redeem_address,
 			10,
 			&cosign_secret,
@@ -283,7 +294,7 @@ where
 
 		// Check Grin chain
 		let confirmations =
-			swap.update_lock_confirmations(self.keychain.secp(), &self.node_client)?;
+			swap.update_lock_confirmations(self.keychain()?.secp(), &self.node_client)?;
 		if !swap.is_locked(30) {
 			return Ok(Some(Action::Confirmations {
 				required: 30,
@@ -293,7 +304,7 @@ where
 
 		// If we got here, funds have been locked on both chains with sufficient confirmations
 		swap.status = Status::Locked;
-		BuyAPI::init_redeem(&self.keychain, swap, context)?;
+		BuyApi::init_redeem(self.keychain()?, swap, context)?;
 
 		Ok(None)
 	}
@@ -319,29 +330,90 @@ where
 		message: Message,
 	) -> Result<(), ErrorKind> {
 		let (_, redeem, _) = message.unwrap_redeem()?;
-		BuyAPI::redeem(&self.keychain, swap, context, redeem)?;
+		BuyApi::redeem(self.keychain()?, swap, context, redeem)?;
 		Ok(())
 	}
 }
 
-impl<K, C, B> SwapAPI for BTCSwapAPI<K, C, B>
+impl<K, C, B> SwapApi<K> for BtcSwapApi<K, C, B>
 where
 	K: Keychain,
 	C: NodeClient,
-	B: BTCNodeClient,
+	B: BtcNodeClient,
 {
+	fn set_keychain(&mut self, keychain: Option<K>) {
+		self.keychain = keychain;
+	}
+
+	fn context_key_count(
+		&mut self,
+		secondary_currency: Currency,
+		_is_seller: bool,
+	) -> Result<usize, ErrorKind> {
+		if secondary_currency != Currency::Btc {
+			return Err(ErrorKind::UnexpectedCoinType);
+		}
+
+		Ok(4)
+	}
+
+	fn create_context(
+		&mut self,
+		secondary_currency: Currency,
+		is_seller: bool,
+		inputs: Option<Vec<(Identifier, u64)>>,
+		keys: Vec<Identifier>,
+	) -> Result<Context, ErrorKind> {
+		if secondary_currency != Currency::Btc {
+			return Err(ErrorKind::UnexpectedCoinType);
+		}
+
+		let secp = self.keychain()?.secp();
+		let mut keys = keys.into_iter();
+
+		let role_context = if is_seller {
+			RoleContext::Seller(SellerContext {
+				inputs: inputs.ok_or(ErrorKind::UnexpectedRole)?,
+				change_output: keys.next().unwrap(),
+				refund_output: keys.next().unwrap(),
+				secondary_context: SecondarySellerContext::Btc(BtcSellerContext {
+					cosign: keys.next().unwrap(),
+				}),
+			})
+		} else {
+			RoleContext::Buyer(BuyerContext {
+				output: keys.next().unwrap(),
+				redeem: keys.next().unwrap(),
+				secondary_context: SecondaryBuyerContext::Btc(BtcBuyerContext {
+					refund: keys.next().unwrap(),
+				}),
+			})
+		};
+
+		Ok(Context {
+			multisig_key: keys.next().unwrap(),
+			multisig_nonce: generate_nonce(secp)?,
+			lock_nonce: generate_nonce(secp)?,
+			refund_nonce: generate_nonce(secp)?,
+			redeem_nonce: generate_nonce(secp)?,
+			role_context,
+		})
+	}
+
 	/// Seller creates a swap offer
 	fn create_swap_offer(
 		&mut self,
 		context: &Context,
+		address: Option<String>,
 		primary_amount: u64,
 		secondary_amount: u64,
+		secondary_currency: Currency,
 		secondary_redeem_address: String,
 	) -> Result<(Swap, Action), ErrorKind> {
-		let address = Address::from_str(&secondary_redeem_address)
+		let redeem_address = Address::from_str(&secondary_redeem_address)
 			.map_err(|_| ErrorKind::Generic("Unable to parse BTC redeem address".into()))?;
 
-		match address.address_type() {
+		match redeem_address.address_type() {
 			Some(AddressType::P2pkh) | Some(AddressType::P2sh) => {}
 			_ => {
 				return Err(ErrorKind::Generic(
@@ -350,19 +422,24 @@ where
 			}
 		};
 
+		if secondary_currency != Currency::Btc {
+			return Err(ErrorKind::UnexpectedCoinType);
+		}
+
 		let height = self.node_client.get_chain_height()?;
-		let mut swap = SellAPI::create_swap_offer(
-			&self.keychain,
+		let mut swap = SellApi::create_swap_offer(
+			self.keychain()?,
 			context,
+			address,
 			primary_amount,
 			secondary_amount,
-			Currency::BTC,
+			Currency::Btc,
 			secondary_redeem_address,
 			height,
 		)?;
 
-		let btc_data = BTCData::new(
-			&self.keychain,
+		let btc_data = BtcData::new(
+			self.keychain()?,
 			context.unwrap_seller()?.unwrap_btc()?,
 			Duration::from_secs(24 * 60 * 60),
 		)?;
@@ -376,17 +453,19 @@ where
 	fn accept_swap_offer(
 		&mut self,
 		context: &Context,
+		address: Option<String>,
 		message: Message,
 	) -> Result<(Swap, Action), ErrorKind> {
 		let (id, offer, secondary_update) = message.unwrap_offer()?;
-		let btc_data = BTCData::from_offer(
-			&self.keychain,
+		let btc_data = BtcData::from_offer(
+			self.keychain()?,
 			secondary_update.unwrap_btc()?.unwrap_offer()?,
 			context.unwrap_buyer()?.unwrap_btc()?,
 		)?;
 
 		let height = self.node_client.get_chain_height()?;
-		let mut swap = BuyAPI::accept_swap_offer(&self.keychain, context, id, offer, height)?;
+		let mut swap =
+			BuyApi::accept_swap_offer(self.keychain()?, context, address, id, offer, height)?;
 		swap.secondary_data = btc_data.wrap();
 
 		let action = self.required_action(&mut swap, context)?;
@@ -404,7 +483,7 @@ where
 					return Err(ErrorKind::UnexpectedAction);
 				}
 			}
-			Role::Buyer => BuyAPI::completed(swap)?,
+			Role::Buyer => BuyApi::completed(swap)?,
 		}
 		let action = self.required_action(swap, context)?;
 
@@ -421,7 +500,7 @@ where
 
 	/// Check which action should be taken by the user
 	fn required_action(&mut self, swap: &mut Swap, context: &Context) -> Result<Action, ErrorKind> {
-		if swap.finalized() {
+		if swap.is_finalized() {
 			return Ok(Action::None);
 		}
 
@@ -434,7 +513,7 @@ where
 				} else if swap.status == Status::RedeemSecondary {
 					return self.seller_update_redeem(swap);
 				}
-				let action = SellAPI::required_action(&mut self.node_client, swap)?;
+				let action = SellApi::required_action(&mut self.node_client, swap)?;
 
 				match (swap.status, action) {
 					(Status::Redeem, Action::Complete) => {
@@ -450,17 +529,17 @@ where
 						return Ok(action);
 					}
 				}
-				BuyAPI::required_action(&mut self.node_client, swap)?
+				BuyApi::required_action(&mut self.node_client, swap)?
 			}
 		};
 
 		Ok(action)
 	}
 
-	fn message(&self, swap: &Swap) -> Result<Message, ErrorKind> {
+	fn message(&mut self, swap: &Swap) -> Result<Message, ErrorKind> {
 		let message = match swap.role {
 			Role::Seller(_, _) => {
-				let mut message = SellAPI::message(swap)?;
+				let mut message = SellApi::message(swap)?;
 				if let Update::Offer(_) = message.inner {
 					message.set_inner_secondary(
 						swap.secondary_data.unwrap_btc()?.offer_update().wrap(),
@@ -469,7 +548,7 @@ where
 				message
 			}
 			Role::Buyer => {
-				let mut message = BuyAPI::message(swap)?;
+				let mut message = BuyApi::message(swap)?;
 				if let Update::AcceptOffer(_) = message.inner {
 					message.set_inner_secondary(
 						swap.secondary_data
@@ -488,8 +567,8 @@ where
 	/// Message has been sent to the counterparty, update state accordingly
 	fn message_sent(&mut self, swap: &mut Swap, context: &Context) -> Result<Action, ErrorKind> {
 		match swap.role {
-			Role::Seller(_, _) => SellAPI::message_sent(swap)?,
-			Role::Buyer => BuyAPI::message_sent(swap)?,
+			Role::Seller(_, _) => SellApi::message_sent(swap)?,
+			Role::Buyer => BuyApi::message_sent(swap)?,
 		}
 		let action = self.required_action(swap, context)?;
 
@@ -507,7 +586,7 @@ where
 			return Err(ErrorKind::MismatchedId);
 		}
 
-		if swap.finalized() {
+		if swap.is_finalized() {
 			return Err(ErrorKind::Finalized);
 		}
 
@@ -526,8 +605,8 @@ where
 		context: &Context,
 	) -> Result<Action, ErrorKind> {
 		match swap.role {
-			Role::Seller(_, _) => SellAPI::publish_transaction(&self.node_client, swap),
-			Role::Buyer => BuyAPI::publish_transaction(&self.node_client, swap),
+			Role::Seller(_, _) => SellApi::publish_transaction(&self.node_client, swap),
+			Role::Buyer => BuyApi::publish_transaction(&self.node_client, swap),
 		}?;
 
 		self.required_action(swap, context)
