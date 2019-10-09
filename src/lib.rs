@@ -8,6 +8,8 @@ extern crate grin_keychain;
 extern crate grin_util;
 extern crate grin_wallet_libwallet as libwallet;
 extern crate hex;
+#[macro_use]
+extern crate lazy_static;
 extern crate rand;
 extern crate serde;
 #[macro_use]
@@ -21,6 +23,6 @@ pub use swap::bitcoin::{BtcNodeClient, BtcSwapApi, ElectrumNodeClient, TestBtcNo
 pub use swap::message::{Message, OfferUpdate, SecondaryUpdate, Update};
 pub use swap::multisig::Builder;
 pub use swap::types::{Action, BuyerContext, Context, Currency, Role, SellerContext, Status};
-pub use swap::{ErrorKind, Keychain, Swap};
+pub use swap::{is_test_mode, set_test_mode, ErrorKind, Keychain, Swap};
 
 mod swap;

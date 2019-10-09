@@ -62,6 +62,16 @@ pub enum ErrorKind {
 	Generic(String),
 }
 
+impl ErrorKind {
+	pub fn is_network_error(&self) -> bool {
+		use ErrorKind::*;
+		match self {
+			Rpc(_) | NodeClient(_) | LibWallet(libwallet::ErrorKind::Node) => true,
+			_ => false,
+		}
+	}
+}
+
 impl From<grin_keychain::Error> for ErrorKind {
 	fn from(error: grin_keychain::Error) -> ErrorKind {
 		ErrorKind::Keychain(error)

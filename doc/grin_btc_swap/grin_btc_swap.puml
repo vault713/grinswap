@@ -1,0 +1,141 @@
+@startuml grin-btc-swap
+!pragma teoz true
+
+title **Grin-BTC atomic swap flow**
+
+actor "Grin seller" as seller
+actor "Grin buyer" as buyer
+
+== OFFER STAGE ==
+
+note left of seller
+  - Wants to sell **v_p** nGrin for **v_s** sat
+  - Multisig: partial blind **m_s**
+      send round 1: **M_s = m_s * G**, **T_1s**, **T_2s**
+  - Send lock slate: add inputs, change output (blind **x_ch**),
+      round 1 w/ excess **x_ch + m_s - x_in**
+  - Send refund slate: lock **height_now + 720** (~12h), add refund output (blind **x_refs**), 
+      round 1 w/ excess **x_ref - m_s**
+  - Send redeem slate part.:
+      round 1 w/ excess **-m_s**
+  - BTC specific: cosign redeem secret **x_reds**, 
+      send pubkey **P_reds = x_reds * G**, refund lock time **now + 24h**
+  - Set status to <i>Created</i>
+end note
+
+seller -> buyer: Message(Id, OfferUpdate, BtcOfferUpdate)
+
+note left of seller
+  - Set status to <i>Offered</i>
+end note
+
+& note right of buyer
+  - Wants to buy **v_p** nGrin for **v_s** sat
+  - Check refund lock times
+  - Multisig: import seller round 1, partial blind **m_s**
+      send round 1+2: **M_b = m_b * G**, **T_1b**, **T_2b**, **tau_xb**
+  - Send lock slate part.:
+      round 1+2 w/ excess **m_b**
+  - Send refund slate part.:
+      round 1+2 w/ excess **-m_b**
+  - Generate redeem secret **q**, send pubkey **Q = q * G**
+  - BTC specific: refund secret **x_refb**, send pubkey **P_refb = x_refb * G**
+  - Uniquely defined BTC script and P2SH address
+      2-of-2 multisig for **P_reds** and **Q**
+  - Set status to <i>Offered</i>
+end note
+
+buyer -> seller: Message(Id, AcceptOfferUpdate, BtcAcceptOfferUpdate)
+
+note right of buyer
+  - Set status to <i>Accepted</i>
+end note
+
+& note left of seller
+  - Multisig: import buyer round 1+2, calculate round 2 and finalize proof
+  - Lock slate: import buyer part., add multisig output **M = M_s + M_b + v_p * H** and proof,
+        round 2 + finalize
+  - Refund slate: import buyer part., add multisig input
+        round 2 + finalize
+  - Set status to <i>Accepted</i>
+end note
+
+== LOCK STAGE ==
+
+[o<- seller: Broadcast lock tx to Grin node
+buyer -> buyer: User action: deposit BTC into address
+seller -> seller: Wait for sufficient Grin confirmations
+& buyer -> buyer: Wait for sufficient BTC confirmations
+seller -> seller: Wait for sufficient BTC confirmations
+& buyer -> buyer: Wait for sufficient Grin confirmations
+
+note left of seller
+  - Set status to <i>Locked</i>
+end note
+
+& note right of buyer
+  - Set status to <i>Locked</i>
+end note
+
+== REDEEM STAGE ==
+
+note right of buyer
+  - Send refund slate: add multisig input **M**, redeem output (blind **x_redb**),
+      round 1 w/ excess **x_redb - m_b**, public **P_b**
+  - Send adaptor signature: **(s_b', K_b) = (s_b + q, k_b * G)**
+      **s_b = k_b + e * (x_redb - m_b)**
+end note
+
+buyer -> seller: Message(Id, InitRedeemUpdate)
+
+note right of buyer
+  - Set status to <i>InitRedeem</i>
+end note
+
+& note left of seller
+  - Validate adaptor signature:
+      **s_b' * G =?= K_b + e * P_b + Q**
+  - Send redeem slate part.:
+      round 2, sig. **(s_s, K_s) = (k_s - e * m_s, k_s * G)**
+  - Set status to <i>InitRedeem</i>
+end note
+
+seller -> buyer: Message(Id, RedeemUpdate)
+
+note left of seller
+  - Set status to <i>Redeem</i>
+end note
+
+& note right of buyer
+  - Redeem slate: import seller part.,
+      round 2 + finalize, total sig. **(s, K) = (s_b + s_s, K_b + K_s)**
+  - Set status to <i>Redeem</i>
+end note
+
+buyer ->o]: Broadcast redeem tx to Grin node
+buyer -> buyer: Wait for Grin confirmation(s)
+& seller -> seller: Wait for Grin confirmation(s)
+
+[o-> seller: Fetch kernel signature **(s, K)** from Grin node
+
+note right of buyer
+  - Swap finalized!
+  - Set status to <i>Completed</i>
+end note
+
+& note left of seller
+  - Calculate redeem secret **q = s_b' + s_s - s**
+  - Build BTC redeem tx, sign with **x_reds** and **q**
+  - Set status to <i>RedeemSecondary</i>
+end note
+
+[o<- seller: Broadcast redeem tx to BTC node
+
+seller -> seller: Wait for BTC confirmation(s)
+
+note left of seller
+  - Swap finalized!
+  - Set status to <i>Completed</i>
+end note
+
+@enduml

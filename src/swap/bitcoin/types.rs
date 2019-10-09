@@ -54,7 +54,11 @@ impl BtcData {
 	where
 		K: Keychain,
 	{
-		let lock_time = Utc::now().timestamp() as u64 + duration.as_secs();
+		let lock_time = if crate::swap::is_test_mode() {
+			1567718553
+		} else {
+			Utc::now().timestamp() as u64 + duration.as_secs()
+		};
 		assert!(lock_time > 0 && lock_time < std::u32::MAX as u64);
 
 		let cosign = PublicKey::from_secret_key(

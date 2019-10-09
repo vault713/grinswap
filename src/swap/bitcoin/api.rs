@@ -5,11 +5,10 @@ use crate::swap::types::{
 	Action, BuyerContext, Context, Currency, Role, RoleContext, SecondaryBuyerContext,
 	SecondarySellerContext, SellerContext, Status,
 };
-use crate::swap::{BuyApi, ErrorKind, Keychain, SellApi, Swap, SwapApi};
+use crate::swap::{BuyApi, ErrorKind, Keychain, NodeClient, SellApi, Swap, SwapApi};
 use bitcoin::{Address, AddressType};
 use grin_keychain::{Identifier, SwitchCommitmentType};
 use grin_util::secp::aggsig::export_secnonce_single as generate_nonce;
-use libwallet::NodeClient;
 use std::str::FromStr;
 use std::time::Duration;
 
@@ -159,7 +158,7 @@ where
 	) -> Result<(), ErrorKind> {
 		match swap.status {
 			Status::Offered => self.seller_accepted_offer(swap, context, message),
-			Status::Locked => self.seller_init_redeem(swap, context, message),
+			Status::Accepted | Status::Locked => self.seller_init_redeem(swap, context, message),
 			_ => Err(ErrorKind::UnexpectedMessageType),
 		}
 	}

@@ -152,16 +152,15 @@ impl Swap {
 	pub(super) fn redeem_tx_fields(
 		&self,
 		secp: &Secp256k1,
+		redeem_slate: &Slate,
 	) -> Result<(PublicKey, PublicKey, SecpMessage), ErrorKind> {
-		let pub_nonces = self
-			.redeem_slate
+		let pub_nonces = redeem_slate
 			.participant_data
 			.iter()
 			.map(|p| &p.public_nonce)
 			.collect();
 		let pub_nonce_sum = PublicKey::from_combination(secp, pub_nonces)?;
-		let pub_blinds = self
-			.redeem_slate
+		let pub_blinds = redeem_slate
 			.participant_data
 			.iter()
 			.map(|p| &p.public_blind_excess)
@@ -169,7 +168,7 @@ impl Swap {
 		let pub_blind_sum = PublicKey::from_combination(secp, pub_blinds)?;
 
 		let features = KernelFeatures::Plain {
-			fee: self.redeem_slate.fee,
+			fee: redeem_slate.fee,
 		};
 		let message = features
 			.kernel_sig_msg()

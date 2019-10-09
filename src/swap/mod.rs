@@ -20,9 +20,28 @@ pub(crate) use self::seller::SellApi;
 pub trait Keychain: grin_keychain::Keychain + Clone + 'static {}
 impl Keychain for grin_keychain::ExtKeychain {}
 
+pub trait NodeClient: grin_wallet_libwallet::NodeClient + 'static {}
+
 use libwallet::SlateVersion;
+use std::sync::atomic::{AtomicBool, Ordering};
+
 const CURRENT_VERSION: u8 = 1;
 const CURRENT_SLATE_VERSION: SlateVersion = SlateVersion::V2;
+
+lazy_static! {
+	/// Flag to set test mode
+	static ref TEST_MODE: AtomicBool = AtomicBool::new(false);
+}
+
+/// Set the test mode
+pub fn set_test_mode(mode: bool) {
+	TEST_MODE.store(mode, Ordering::Relaxed);
+}
+
+/// Check if we are in test mode
+pub fn is_test_mode() -> bool {
+	TEST_MODE.load(Ordering::Relaxed)
+}
 
 #[cfg(test)]
 mod tests {
@@ -182,6 +201,8 @@ mod tests {
 		}
 	}
 
+	impl super::NodeClient for TestNodeClient {}
+
 	impl NodeClient for TestNodeClient {
 		fn node_url(&self) -> &str {
 			unimplemented!()
@@ -297,6 +318,7 @@ mod tests {
 
 	#[test]
 	fn test_refund_tx_lock() {
+		set_test_mode(true);
 		let kc_sell = keychain(1);
 		let ctx_sell = context_sell(&kc_sell);
 		let secondary_redeem_address = btc_address(&kc_sell);
@@ -333,6 +355,7 @@ mod tests {
 
 	#[test]
 	fn test_btc_swap() {
+		set_test_mode(true);
 		let write_json = false;
 
 		let kc_sell = keychain(1);
@@ -383,6 +406,19 @@ mod tests {
 				serde_json::to_string_pretty(&ctx_sell).unwrap(),
 			)
 			.unwrap();
+		} else {
+			assert_eq!(
+				read_to_string("test/swap_sell_1.json").unwrap(),
+				serde_json::to_string_pretty(&swap_sell).unwrap()
+			);
+			assert_eq!(
+				read_to_string("test/message_1.json").unwrap(),
+				serde_json::to_string_pretty(&message_1).unwrap()
+			);
+			assert_eq!(
+				read_to_string("test/context_sell.json").unwrap(),
+				serde_json::to_string_pretty(&ctx_sell).unwrap()
+			);
 		}
 
 		// Add inputs to utxo set
@@ -498,6 +534,19 @@ mod tests {
 				serde_json::to_string_pretty(&ctx_buy).unwrap(),
 			)
 			.unwrap();
+		} else {
+			assert_eq!(
+				read_to_string("test/swap_buy_1.json").unwrap(),
+				serde_json::to_string_pretty(&swap_buy).unwrap()
+			);
+			assert_eq!(
+				read_to_string("test/message_2.json").unwrap(),
+				serde_json::to_string_pretty(&message_2).unwrap()
+			);
+			assert_eq!(
+				read_to_string("test/context_buy.json").unwrap(),
+				serde_json::to_string_pretty(&ctx_buy).unwrap()
+			);
 		}
 
 		// Seller: receive accepted offer
@@ -523,6 +572,11 @@ mod tests {
 				serde_json::to_string_pretty(&swap_sell).unwrap(),
 			)
 			.unwrap();
+		} else {
+			assert_eq!(
+				read_to_string("test/swap_sell_2.json").unwrap(),
+				serde_json::to_string_pretty(&swap_sell).unwrap()
+			);
 		}
 
 		// Seller: wait for Grin confirmations
@@ -567,6 +621,11 @@ mod tests {
 				serde_json::to_string_pretty(&swap_sell).unwrap(),
 			)
 			.unwrap();
+		} else {
+			assert_eq!(
+				read_to_string("test/swap_sell_3.json").unwrap(),
+				serde_json::to_string_pretty(&swap_sell).unwrap()
+			);
 		}
 
 		// Buyer: start redeem
@@ -587,6 +646,15 @@ mod tests {
 				serde_json::to_string_pretty(&message_3).unwrap(),
 			)
 			.unwrap();
+		} else {
+			assert_eq!(
+				read_to_string("test/swap_buy_2.json").unwrap(),
+				serde_json::to_string_pretty(&swap_buy).unwrap()
+			);
+			assert_eq!(
+				read_to_string("test/message_3.json").unwrap(),
+				serde_json::to_string_pretty(&message_3).unwrap()
+			);
 		}
 
 		// Seller: sign redeem
@@ -616,6 +684,15 @@ mod tests {
 				serde_json::to_string_pretty(&message_4).unwrap(),
 			)
 			.unwrap();
+		} else {
+			assert_eq!(
+				read_to_string("test/swap_sell_4.json").unwrap(),
+				serde_json::to_string_pretty(&swap_sell).unwrap()
+			);
+			assert_eq!(
+				read_to_string("test/message_4.json").unwrap(),
+				serde_json::to_string_pretty(&message_4).unwrap()
+			);
 		}
 
 		// Buyer: redeem
@@ -647,6 +724,11 @@ mod tests {
 				serde_json::to_string_pretty(&swap_buy).unwrap(),
 			)
 			.unwrap();
+		} else {
+			assert_eq!(
+				read_to_string("test/swap_buy_3.json").unwrap(),
+				serde_json::to_string_pretty(&swap_buy).unwrap()
+			);
 		}
 
 		// Seller: publish BTC tx
@@ -660,6 +742,11 @@ mod tests {
 				serde_json::to_string_pretty(&swap_sell).unwrap(),
 			)
 			.unwrap();
+		} else {
+			assert_eq!(
+				read_to_string("test/swap_sell_5.json").unwrap(),
+				serde_json::to_string_pretty(&swap_sell).unwrap()
+			);
 		}
 
 		// Seller: wait for BTC confirmations
@@ -685,7 +772,14 @@ mod tests {
 				serde_json::to_string_pretty(&swap_sell).unwrap(),
 			)
 			.unwrap();
+		} else {
+			assert_eq!(
+				read_to_string("test/swap_sell_6.json").unwrap(),
+				serde_json::to_string_pretty(&swap_sell).unwrap()
+			);
 		}
+
+		assert!(!write_json, "json files written");
 	}
 
 	#[test]

@@ -17,13 +17,14 @@ chrono = { version = "0.4", features = ["serde"] }
 failure = "0.1"
 failure_derive = "0.1"
 hex = "0.3"
+lazy_static = "1.4"
 parking_lot = "0.6"
 rand = "0.5"
 serde = "1"
 serde_derive = "1"
 serde_json = "1"
 sha2 = "0.8"
-uuid = { version = "0.6", features = ["serde", "v4"] }
+uuid = { version = "0.7", features = ["serde", "v4"] }
 
 #grin_core = "2.0.0"
 #grin_keychain = "2.0.0"
@@ -33,14 +34,18 @@ uuid = { version = "0.6", features = ["serde", "v4"] }
 #grin_keychain = { path = "../grin_fork/keychain", version= "2.0.1-beta.1"}
 #grin_store = { path = "../grin_fork/store", version= "2.0.1-beta.1"}
 #grin_util = { path = "../grin_fork/util", version= "2.0.1-beta.1"}
+#grin_core = { git = "https://github.com/mimblewimble/grin", tag = "v2.1.0-beta.3" }
+#grin_keychain = { git = "https://github.com/mimblewimble/grin", tag = "v2.1.0-beta.3" }
+#grin_store = { git = "https://github.com/mimblewimble/grin", tag = "v2.1.0-beta.3" }
+#grin_util = { git = "https://github.com/mimblewimble/grin", tag = "v2.1.0-beta.3" }
 grin_core = { git = "https://github.com/mimblewimble/grin", branch = "master" }
 grin_keychain = { git = "https://github.com/mimblewimble/grin", branch = "master" }
 grin_store = { git = "https://github.com/mimblewimble/grin", branch = "master" }
 grin_util = { git = "https://github.com/mimblewimble/grin", branch = "master" }
 
-#grin_wallet_libwallet = { git = "https://github.com/mimblewimble/grin-wallet", tag = "v2.0.0" }
+grin_wallet_libwallet = { git = "https://github.com/mimblewimble/grin-wallet", branch = "master" }
 #grin_wallet_libwallet = { path = "../grin-wallet_fork/libwallet", version = "2.1.0-beta.1" }
-grin_wallet_libwallet = { git = "https://github.com/jaspervdm/grin-wallet", branch = "kernel_lookup" }
+#grin_wallet_libwallet = { git = "https://github.com/jaspervdm/grin-wallet", branch = "kernel_lookup" }
 
 [patch.crates-io]
 grin_secp256k1zkp = { git = "https://github.com/jaspervdm/rust-secp256k1-zkp", branch = "master" }
