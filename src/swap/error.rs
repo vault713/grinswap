@@ -59,14 +59,19 @@ pub enum ErrorKind {
 	#[fail(display = "{}", _0)]
 	NodeClient(String),
 	#[fail(display = "{}", _0)]
+	GenericNetwork(String),
+	#[fail(display = "{}", _0)]
 	Generic(String),
 }
 
 impl ErrorKind {
 	pub fn is_network_error(&self) -> bool {
 		use ErrorKind::*;
+		format!("");
 		match self {
-			Rpc(_) | NodeClient(_) | LibWallet(libwallet::ErrorKind::Node) => true,
+			Rpc(_) | NodeClient(_) | LibWallet(libwallet::ErrorKind::Node) | GenericNetwork(_) => {
+				true
+			}
 			_ => false,
 		}
 	}
@@ -116,4 +121,14 @@ impl From<committed::Error> for ErrorKind {
 			e => ErrorKind::Generic(format!("{}", e)),
 		}
 	}
+}
+
+#[macro_export]
+macro_rules! generic {
+    ($($arg:tt)*) => ($crate::ErrorKind::Generic(format!($($arg)*)))
+}
+
+#[macro_export]
+macro_rules! network {
+    ($($arg:tt)*) => ($crate::ErrorKind::GenericNetwork(format!($($arg)*)))
 }

@@ -8,7 +8,9 @@ use grin_util::{from_hex, to_hex};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::io::Cursor;
+use std::mem::replace;
 use std::str::FromStr;
+use std::time::{Duration, Instant};
 
 struct ElectrumRpcClient {
 	inner: RpcClient,
@@ -52,6 +54,10 @@ impl ElectrumRpcClient {
 		client.version()?;
 
 		Ok(client)
+	}
+
+	pub fn is_connected(&self) -> bool {
+		self.inner.is_connected()
 	}
 
 	fn wait<T: for<'de> Deserialize<'de>>(&mut self, id: String) -> Result<T, ElectrumError> {
@@ -222,7 +228,7 @@ pub struct ElectrumTransaction {
 pub struct ElectrumNodeClient {
 	pub address: String,
 	pub testnet: bool,
-	client: Option<ElectrumRpcClient>,
+	client: Option<(ElectrumRpcClient, Instant)>,
 }
 
 impl ElectrumNodeClient {
@@ -240,10 +246,26 @@ impl ElectrumNodeClient {
 	}
 
 	fn client(&mut self) -> Result<&mut ElectrumRpcClient, ErrorKind> {
-		if self.client.is_none() {
-			self.client = Some(ElectrumRpcClient::new(self.address.clone())?);
+		// Reset connection if it disconnected or if we haven't used it for a while
+		if self
+			.client
+			.as_ref()
+			.map(|(c, t)| !c.is_connected() || t.elapsed() >= Duration::from_secs(300))
+			.unwrap_or(false)
+		{
+			self.client = None;
 		}
-		Ok(self.client.as_mut().unwrap())
+
+		if self.client.is_none() {
+			self.client = Some((
+				ElectrumRpcClient::new(self.address.clone())?,
+				Instant::now(),
+			));
+		}
+
+		let (c, t) = self.client.as_mut().unwrap();
+		replace(t, Instant::now());
+		Ok(c)
 	}
 }
 
