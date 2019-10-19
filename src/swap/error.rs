@@ -28,6 +28,10 @@ pub enum ErrorKind {
 	IncompatibleVersion,
 	#[fail(display = "Mismatch between swap and message IDs")]
 	MismatchedId,
+	#[fail(display = "Invalid amount string")]
+	InvalidAmountString,
+	#[fail(display = "Invalid currency")]
+	InvalidCurrency,
 	#[fail(display = "Invalid lock height for lock tx")]
 	InvalidLockHeightLockTx,
 	#[fail(display = "Invalid lock height for refund tx")]

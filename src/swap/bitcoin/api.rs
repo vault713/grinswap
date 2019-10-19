@@ -132,6 +132,7 @@ where
 
 			if confirmed_amount < swap.secondary_amount {
 				return Ok(Some(Action::ConfirmationsSecondary {
+					currency: swap.secondary_currency,
 					required: 6,
 					actual: least_confirmations,
 				}));
@@ -243,7 +244,7 @@ where
 
 		if btc_data.redeem_confirmations.is_none() {
 			// ..but we haven't published it yet
-			Ok(Action::PublishTxSecondary)
+			Ok(Action::PublishTxSecondary(Currency::Btc))
 		} else {
 			// ..we published it..
 			if let Some((Some(height), _)) = self.btc_node_client.transaction(txid)? {
@@ -255,7 +256,10 @@ where
 				}
 			}
 			// ..but its not confirmed yet
-			Ok(Action::ConfirmationRedeemSecondary(format!("{}", txid)))
+			Ok(Action::ConfirmationRedeemSecondary(
+				swap.secondary_currency,
+				format!("{}", txid),
+			))
 		}
 	}
 
@@ -277,6 +281,7 @@ where
 				// At this point, user needs to deposit (more) Bitcoin
 				self.script(keychain, swap)?;
 				return Ok(Some(Action::DepositSecondary {
+					currency: swap.secondary_currency,
 					amount: swap.secondary_amount - chain_amount,
 					address: format!(
 						"{}",
@@ -289,6 +294,7 @@ where
 			if confirmed_amount < swap.secondary_amount {
 				// Wait for enough confirmations
 				return Ok(Some(Action::ConfirmationsSecondary {
+					currency: swap.secondary_currency,
 					required: 6,
 					actual: least_confirmations,
 				}));
@@ -532,7 +538,7 @@ where
 				match (swap.status, action) {
 					(Status::Redeem, Action::Complete) => {
 						self.seller_build_redeem_tx(keychain, swap, context)?;
-						Action::PublishTxSecondary
+						Action::PublishTxSecondary(Currency::Btc)
 					}
 					(_, action) => action,
 				}

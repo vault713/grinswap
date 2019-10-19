@@ -7,7 +7,7 @@ use chrono::{DateTime, Utc};
 use grin_core::core::{transaction as tx, KernelFeatures, TxKernel};
 use grin_core::libtx::secp_ser;
 use grin_core::ser;
-use grin_keychain::SwitchCommitmentType;
+use grin_keychain::{Identifier, SwitchCommitmentType};
 use grin_util::secp::key::{PublicKey, SecretKey};
 use grin_util::secp::pedersen::{Commitment, RangeProof};
 use grin_util::secp::{Message as SecpMessage, Secp256k1, Signature};
@@ -70,13 +70,41 @@ impl Swap {
 		}
 	}
 
-	pub fn redeem_output(&self) -> Result<Option<(u64, Commitment)>, ErrorKind> {
-		let output = match self.redeem_slate.tx.outputs().get(0) {
-			Some(o) => o.commit.clone(),
-			None => return Ok(None),
-		};
+	pub fn change_output<K: Keychain>(
+		&self,
+		keychain: &K,
+		context: &Context,
+	) -> Result<(Identifier, u64, Commitment), ErrorKind> {
+		self.expect_seller()?;
+		let scontext = context.unwrap_seller()?;
 
-		Ok(Some((self.redeem_slate.amount, output)))
+		let identifier = scontext.change_output.clone();
+		let amount = scontext
+			.inputs
+			.iter()
+			.fold(0, |acc, (_, value)| acc + *value)
+			.saturating_sub(self.primary_amount);
+		let commit = keychain.commit(amount, &identifier, &SwitchCommitmentType::Regular)?;
+
+		Ok((identifier, amount, commit))
+	}
+
+	pub fn redeem_output<K: Keychain>(
+		&self,
+		keychain: &K,
+		context: &Context,
+	) -> Result<(Identifier, u64, Commitment), ErrorKind> {
+		self.expect_buyer()?;
+		let bcontext = context.unwrap_buyer()?;
+		if self.status < Status::InitRedeem || self.status > Status::Completed {
+			return Err(ErrorKind::UnexpectedStatus(Status::InitRedeem, self.status));
+		}
+
+		let identifier = bcontext.output.clone();
+		let amount = self.redeem_slate.amount;
+		let commit = keychain.commit(amount, &identifier, &SwitchCommitmentType::Regular)?;
+
+		Ok((identifier, amount, commit))
 	}
 
 	pub(super) fn expect_seller(&self) -> Result<(), ErrorKind> {

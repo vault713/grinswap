@@ -439,7 +439,11 @@ mod tests {
 
 		// Buyer: should deposit bitcoin
 		let address = match action {
-			Action::DepositSecondary { amount, address } => {
+			Action::DepositSecondary {
+				currency: _,
+				amount,
+				address,
+			} => {
 				assert_eq!(amount, btc_amount);
 				address
 			}
@@ -465,7 +469,11 @@ mod tests {
 			.required_action(&kc_buy, &mut swap_buy, &ctx_buy)
 			.unwrap()
 		{
-			Action::DepositSecondary { amount, address: _ } => assert_eq!(amount, btc_amount_2),
+			Action::DepositSecondary {
+				currency: _,
+				amount,
+				address: _,
+			} => assert_eq!(amount, btc_amount_2),
 			_ => panic!("Invalid action"),
 		};
 
@@ -487,6 +495,7 @@ mod tests {
 			.unwrap()
 		{
 			Action::ConfirmationsSecondary {
+				currency: _,
 				required: _,
 				actual,
 			} => assert_eq!(actual, 1),
@@ -623,6 +632,7 @@ mod tests {
 			.unwrap()
 		{
 			Action::ConfirmationsSecondary {
+				currency: _,
 				required: _,
 				actual,
 			} => assert_eq!(actual, 5),
@@ -762,7 +772,7 @@ mod tests {
 		let action = api_sell
 			.required_action(&kc_sell, &mut swap_sell, &ctx_sell)
 			.unwrap();
-		assert_eq!(action, Action::PublishTxSecondary);
+		assert_eq!(action, Action::PublishTxSecondary(Currency::Btc));
 		assert_eq!(swap_sell.status, Status::RedeemSecondary);
 
 		if write_json {
@@ -783,7 +793,7 @@ mod tests {
 			.publish_secondary_transaction(&kc_sell, &mut swap_sell, &ctx_sell)
 			.unwrap();
 		match action {
-			Action::ConfirmationRedeemSecondary(_) => {}
+			Action::ConfirmationRedeemSecondary(_, _) => {}
 			_ => panic!("Invalid action"),
 		};
 

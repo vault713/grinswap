@@ -250,7 +250,7 @@ impl ElectrumNodeClient {
 		if self
 			.client
 			.as_ref()
-			.map(|(c, t)| !c.is_connected() || t.elapsed() >= Duration::from_secs(300))
+			.map(|(c, t)| !c.is_connected() || t.elapsed() >= Duration::from_secs(30))
 			.unwrap_or(false)
 		{
 			self.client = None;
