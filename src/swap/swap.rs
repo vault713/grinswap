@@ -322,7 +322,7 @@ pub fn publish_transaction<C: NodeClient>(
 	fluff: bool,
 ) -> Result<(), ErrorKind> {
 	let wrapper = TxWrapper {
-		tx_hex: to_hex(ser::ser_vec(tx, ser::ProtocolVersion::local()).unwrap()),
+		tx_hex: to_hex(ser::ser_vec(tx, ser::ProtocolVersion(1)).unwrap()),
 	};
 	node_client.post_tx(&wrapper, fluff)?;
 	Ok(())

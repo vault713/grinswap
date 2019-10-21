@@ -165,7 +165,7 @@ impl TryFrom<&str> for Currency {
 	type Error = ErrorKind;
 
 	fn try_from(value: &str) -> Result<Self, Self::Error> {
-		match value {
+		match value.to_lowercase().as_str() {
 			"btc" => Ok(Currency::Btc),
 			_ => Err(ErrorKind::InvalidCurrency),
 		}
