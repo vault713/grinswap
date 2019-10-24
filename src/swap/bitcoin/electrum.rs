@@ -225,9 +225,12 @@ pub struct Utxo {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ElectrumTransaction {
-	pub blockhash: String,
-	pub blocktime: u64,
-	pub confirmations: u64,
+	#[serde(default)]
+	pub blockhash: Option<String>,
+	#[serde(default)]
+	pub blocktime: Option<u64>,
+	#[serde(default)]
+	pub confirmations: Option<u64>,
 	pub hash: String,
 	pub hex: String,
 	pub locktime: u64,
@@ -300,7 +303,9 @@ impl BtcNodeClient for ElectrumNodeClient {
 		let tx = client
 			.transaction(tx_hash)?
 			.ok_or(ErrorKind::NodeClient("Unable to determine height".into()))?;
-		Ok(tx.confirmations)
+		tx.confirmations.ok_or(ErrorKind::GenericNetwork(
+			"Unable to determine height".into(),
+		))
 	}
 
 	/// Fetch a list of unspent outputs belonging to this address
@@ -342,10 +347,9 @@ impl BtcNodeClient for ElectrumNodeClient {
 			None => return Ok(None),
 		};
 
-		let height = if tx.confirmations == 0 {
-			None
-		} else {
-			Some(head_height.saturating_sub(tx.confirmations - 1))
+		let height = match tx.confirmations {
+			Some(c) if c > 0 => Some(head_height.saturating_sub(c - 1)),
+			_ => None,
 		};
 
 		let tx_bytes =

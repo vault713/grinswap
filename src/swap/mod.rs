@@ -229,7 +229,7 @@ mod tests {
 		fn post_tx(&self, tx: &libwallet::TxWrapper, _fluff: bool) -> Result<(), libwallet::Error> {
 			let wrapper = from_hex(tx.tx_hex.clone()).unwrap();
 			let mut cursor = Cursor::new(wrapper);
-			let tx: Transaction = deserialize(&mut cursor, ProtocolVersion::local()).unwrap();
+			let tx: Transaction = deserialize(&mut cursor, ProtocolVersion(1)).unwrap();
 			tx.validate(
 				Weighting::AsTransaction,
 				Arc::new(RwLock::new(LruVerifierCache::new())),
